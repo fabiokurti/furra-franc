@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(/opt/homebrew/opt/postgresql@16/bin/psql -c \"\\\\du\" furra_franc)",
+      "Bash(npx prisma:*)"
+    ]
+  }
+}
