@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
 import type { User, Client } from '@/types';
 
@@ -14,6 +18,10 @@ export function StaffPage() {
   const [staffList, setStaffList] = useState<StaffWithClients[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -45,6 +53,31 @@ export function StaffPage() {
   }, []);
 
   const totalClients = staffList.reduce((sum, s) => sum + s.clients.length, 0);
+
+  async function handleCreateStaff(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+    try {
+      await api.post('/auth/create-staff', form);
+      setShowCreate(false);
+      setForm({ name: '', email: '', password: '' });
+      // reload staff list
+      const res = await api.get('/auth/staff-users');
+      const allClientsRes = await api.get('/clients');
+      const allClients: Client[] = allClientsRes.data.clients;
+      setStaffList(
+        res.data.users.map((s: User) => ({
+          ...s,
+          clients: allClients.filter((c) => c.staffId === s.id),
+        }))
+      );
+    } catch (err: any) {
+      setFormError(err.response?.data?.message || 'Ndodhi një gabim');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -80,6 +113,10 @@ export function StaffPage() {
             <span className="font-semibold">{totalClients}</span>
             <span className="text-muted-foreground">klientë gjithsej</span>
           </div>
+          <Button onClick={() => setShowCreate(true)}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Shto Staf
+          </Button>
         </div>
       </div>
 
@@ -173,6 +210,55 @@ export function StaffPage() {
           );
         })}
       </div>
+
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Shto Staf të Ri</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateStaff} className="space-y-4 pt-2">
+            <div className="space-y-1">
+              <Label htmlFor="name">Emri i plotë</Label>
+              <Input
+                id="name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="password">Fjalëkalimi</Label>
+              <Input
+                id="password"
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+                minLength={6}
+              />
+            </div>
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>
+                Anulo
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Duke krijuar...' : 'Krijo llogari'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
