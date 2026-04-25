@@ -8,6 +8,7 @@ import orderRoutes from './routes/order.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import clientRoutes from './routes/client.routes';
 import deliveryRoutes from './routes/delivery.routes';
+import dailyStockRoutes from './routes/dailyStock.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/deliveries', deliveryRoutes);
+app.use('/api/daily-stock', dailyStockRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 

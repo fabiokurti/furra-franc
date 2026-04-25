@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Banknote, XCircle, MapPin, Loader2, CalendarDays } from 'lucide-react';
+import { CheckCircle2, Banknote, XCircle, MapPin, Loader2, CalendarDays, PackageCheck } from 'lucide-react';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
-import type { DashboardStats, DashboardDelivery } from '@/types';
+import type { DashboardStats, DashboardDelivery, DailyStock } from '@/types';
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [dailyStock, setDailyStock] = useState<DailyStock | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [paidError, setPaidError] = useState('');
@@ -33,6 +36,12 @@ export function DashboardPage() {
   useEffect(() => {
     fetchStats(dateFilter);
   }, [dateFilter]);
+
+  useEffect(() => {
+    api.get('/daily-stock/today')
+      .then((res) => setDailyStock(res.data.entry))
+      .catch(() => {});
+  }, []);
 
   const togglePaid = async (delivery: DashboardDelivery) => {
     setPaidError('');
@@ -116,6 +125,68 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Daily Stock Summary */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <PackageCheck className="h-4 w-4 text-primary" />
+              Stoku Ditor
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {dailyStock && (
+                <Badge variant={dailyStock.status === 'OPEN' ? 'default' : 'secondary'}>
+                  {dailyStock.status === 'OPEN' ? 'I hapur' : 'Mbyllur'}
+                </Badge>
+              )}
+              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate('/daily-stock')}>
+                Shiko detajet
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!dailyStock ? (
+            <div className="flex items-center justify-between py-2">
+              <p className="text-sm text-muted-foreground">Stoku ditor nuk është hapur sot.</p>
+              <Button size="sm" onClick={() => navigate('/daily-stock')}>Hap ditën</Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg bg-muted/50 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Fillimi</p>
+                  <p className="text-xl font-bold mt-0.5">{dailyStock.items.reduce((s, i) => s + i.quantity, 0)}</p>
+                </div>
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-950/20 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Dërguar</p>
+                  <p className="text-xl font-bold mt-0.5 text-orange-600">{dailyStock.items.reduce((s, i) => s + i.delivered, 0)}</p>
+                </div>
+                <div className="rounded-lg bg-green-50 dark:bg-green-950/20 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Mbetur</p>
+                  <p className="text-xl font-bold mt-0.5 text-green-600">{dailyStock.items.reduce((s, i) => s + i.remaining, 0)}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {dailyStock.items
+                  .filter((i) => i.remaining > 0)
+                  .sort((a, b) => b.remaining - a.remaining)
+                  .slice(0, 8)
+                  .map((item) => (
+                    <span key={item.id} className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs">
+                      {item.product.name}
+                      <span className="font-bold text-green-600">{item.remaining}</span>
+                    </span>
+                  ))}
+                {dailyStock.items.filter((i) => i.remaining > 0).length === 0 && (
+                  <p className="text-xs text-muted-foreground">Nuk ka stok të mbetur.</p>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Completed Deliveries */}
       <Card>

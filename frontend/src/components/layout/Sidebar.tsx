@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, LogOut, ChefHat, Users, Truck, UserCog } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -10,6 +10,7 @@ const allNavItems = [
   { to: '/dashboard', label: 'Paneli',       icon: LayoutDashboard, adminOnly: false },
   { to: '/deliveries', label: 'Dërgimet',    icon: Truck,           adminOnly: false },
   { to: '/clients',   label: 'Klientët',     icon: Users,           adminOnly: false },
+  { to: '/daily-stock', label: 'Stoku Ditor', icon: PackageCheck,    adminOnly: true  },
   { to: '/staff',     label: 'Stafi',        icon: UserCog,         adminOnly: true  },
   { to: '/products',  label: 'Produktet',    icon: Package,         adminOnly: true  },
   { to: '/orders',    label: 'Porositë',     icon: ShoppingBag,     adminOnly: true  },

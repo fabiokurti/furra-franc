@@ -33,9 +33,10 @@ model Product {
   isActive      Boolean              @default(true)
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
-  orderItems    OrderItem[]
-  deliveryItems DeliveryItem[]
-  clientPrices  ClientProductPrice[]
+  orderItems      OrderItem[]
+  deliveryItems   DeliveryItem[]
+  clientPrices    ClientProductPrice[]
+  dailyStockItems DailyStockItem[]
 
   @@map("products")
 }
@@ -123,6 +124,35 @@ model DeliveryItem {
   deliveryId String
 
   @@map("delivery_items")
+}
+
+model DailyStock {
+  id        String           @id @default(uuid())
+  date      DateTime         @db.Date
+  status    DailyStockStatus @default(OPEN)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  items     DailyStockItem[]
+
+  @@unique([date])
+  @@map("daily_stocks")
+}
+
+model DailyStockItem {
+  id           String     @id @default(uuid())
+  quantity     Int
+  dailyStock   DailyStock @relation(fields: [dailyStockId], references: [id], onDelete: Cascade)
+  dailyStockId String
+  product      Product    @relation(fields: [productId], references: [id])
+  productId    String
+
+  @@unique([dailyStockId, productId])
+  @@map("daily_stock_items")
+}
+
+enum DailyStockStatus {
+  OPEN
+  CLOSED
 }
 
 enum Role {

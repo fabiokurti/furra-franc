@@ -94,6 +94,26 @@ export interface DashboardDelivery extends Delivery {
   totalPrice: number;
 }
 
+export type DailyStockStatus = 'OPEN' | 'CLOSED';
+
+export interface DailyStockItem {
+  id: string;
+  productId: string;
+  quantity: number;
+  delivered: number;
+  remaining: number;
+  product: Pick<Product, 'id' | 'name' | 'category'>;
+}
+
+export interface DailyStock {
+  id: string;
+  date: string;
+  status: DailyStockStatus;
+  items: DailyStockItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardStats {
   totalOrders: number;
   pendingOrders: number;

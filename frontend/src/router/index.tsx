@@ -10,6 +10,7 @@ import { ClientsPage } from '@/pages/ClientsPage';
 import { DeliveriesPage } from '@/pages/DeliveriesPage';
 import { DeliveryDetailPage } from '@/pages/DeliveryDetailPage';
 import { StaffPage } from '@/pages/StaffPage';
+import { DailyStockPage } from '@/pages/DailyStockPage';
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
           { path: '/deliveries', element: <DeliveriesPage /> },
           { path: '/deliveries/:id', element: <DeliveryDetailPage /> },
           { path: '/staff', element: <StaffPage /> },
+          { path: '/daily-stock', element: <DailyStockPage /> },
         ],
       },
     ],

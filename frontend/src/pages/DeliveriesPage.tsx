@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
-import type { Delivery, Client, ClientProductPrice, Product, User as UserType } from '@/types';
+import type { Delivery, Client, ClientProductPrice, Product, User as UserType, DailyStock } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
 function todayISO() {
@@ -44,6 +44,7 @@ export function DeliveriesPage() {
   const [serverError, setServerError] = useState('');
   const [staffFilter, setStaffFilter] = useState('ALL');
   const [updatingId, setUpdatingId]   = useState<string | null>(null);
+  const [dailyStock, setDailyStock]   = useState<DailyStock | null>(null);
 
   // Form state (managed manually for this simple UI)
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -69,6 +70,7 @@ export function DeliveriesPage() {
   useEffect(() => {
     api.get('/clients').then((res) => setClients(res.data.clients));
     api.get('/products').then((res) => setProducts(res.data.products));
+    api.get('/daily-stock/today').then((res) => setDailyStock(res.data.entry)).catch(() => {});
     if (isAdmin) api.get('/auth/staff-users').then((res) => setStaffUsers(res.data.users));
   }, [isAdmin]);
 
@@ -124,6 +126,7 @@ export function DeliveriesPage() {
       });
       setDialogOpen(false);
       fetchDeliveries();
+      api.get('/daily-stock/today').then((res) => setDailyStock(res.data.entry)).catch(() => {});
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setServerError(error.response?.data?.message || 'Operacioni dështoi');
@@ -157,8 +160,16 @@ export function DeliveriesPage() {
     fetchDeliveries();
   };
 
-  // ── group products by category ─────────────────────────────────
-  const productsByCategory = products.reduce<Record<string, Product[]>>((acc, p) => {
+  // ── products available today (from daily stock if open, else all) ─
+  const stockItemMap = Object.fromEntries(
+    (dailyStock?.items ?? []).map((i) => [i.productId, i.remaining])
+  );
+  const hasDailyStock = dailyStock !== null;
+  const dialogProducts = hasDailyStock
+    ? products.filter((p) => stockItemMap[p.id] !== undefined)
+    : products.filter((p) => p.isActive);
+
+  const productsByCategory = dialogProducts.reduce<Record<string, Product[]>>((acc, p) => {
     if (!acc[p.category]) acc[p.category] = [];
     acc[p.category].push(p);
     return acc;
@@ -354,6 +365,11 @@ export function DeliveriesPage() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+            {!hasDailyStock && (
+              <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
+                Stoku ditor nuk është hapur sot. Po shfaqen të gjitha produktet.
+              </div>
+            )}
             {serverError && (
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{serverError}</div>
             )}
@@ -397,21 +413,33 @@ export function DeliveriesPage() {
                         const selected = isSelected(product.id);
                         const price = getPriceForProduct(product.id);
                         const item = selectedItems.find((i) => i.productId === product.id);
+                        const remaining = stockItemMap[product.id] ?? null;
+                        const noStock = remaining !== null && remaining <= 0;
 
                         return (
                           <div key={product.id}>
                             {/* Toggle button */}
                             <button
                               type="button"
-                              onClick={() => toggleProduct(product.id)}
+                              onClick={() => !noStock && toggleProduct(product.id)}
+                              disabled={noStock}
                               className={`w-full rounded-lg border-2 px-3 py-2.5 text-left transition-all ${
-                                selected
+                                noStock
+                                  ? 'border-border bg-muted opacity-50 cursor-not-allowed'
+                                  : selected
                                   ? 'border-primary bg-primary/10 text-primary'
                                   : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
                               }`}
                             >
                               <p className="text-sm font-semibold leading-tight">{product.name}</p>
-                              <p className="text-xs mt-0.5 font-medium opacity-80">{price} L</p>
+                              <div className="flex items-center justify-between mt-0.5">
+                                <p className="text-xs font-medium opacity-80">{price} L</p>
+                                {remaining !== null && (
+                                  <p className={`text-xs font-semibold ${remaining <= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                    {remaining} mbetur
+                                  </p>
+                                )}
+                              </div>
                             </button>
 
                             {/* Quantity row — only when selected */}
