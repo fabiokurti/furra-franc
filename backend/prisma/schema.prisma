@@ -8,31 +8,35 @@ datasource db {
 }
 
 model User {
-  id              String     @id @default(uuid())
+  id              String         @id @default(uuid())
   name            String
-  email           String     @unique
+  email           String         @unique
   passwordHash    String
-  role            Role       @default(STAFF)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  role            Role           @default(STAFF)
+  clientId        String?        @unique
+  client          Client?        @relation("BusinessAccount", fields: [clientId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   orders          Order[]
-  assignedClients Client[]   @relation("StaffClients")
+  assignedClients Client[]       @relation("StaffClients")
   deliveries      Delivery[]
+  shopProducts    ShopProduct[]
+  shopSales       ShopSale[]
 
   @@map("users")
 }
 
 model Product {
-  id            String               @id @default(uuid())
-  name          String
-  description   String?
-  price         Decimal              @db.Decimal(10, 2)
-  stock         Int                  @default(0)
-  category      String
-  imageUrl      String?
-  isActive      Boolean              @default(true)
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
+  id              String               @id @default(uuid())
+  name            String
+  description     String?
+  price           Decimal              @db.Decimal(10, 2)
+  stock           Int                  @default(0)
+  category        String
+  imageUrl        String?
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
   orderItems      OrderItem[]
   deliveryItems   DeliveryItem[]
   clientPrices    ClientProductPrice[]
@@ -70,18 +74,19 @@ model OrderItem {
 }
 
 model Client {
-  id         String               @id @default(uuid())
-  name       String
-  address    String?
-  phone      String?
-  notes      String?
-  isActive   Boolean              @default(true)
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
-  assignedTo User                 @relation("StaffClients", fields: [staffId], references: [id])
-  staffId    String
-  deliveries Delivery[]
-  prices     ClientProductPrice[]
+  id          String               @id @default(uuid())
+  name        String
+  address     String?
+  phone       String?
+  notes       String?
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  assignedTo  User                 @relation("StaffClients", fields: [staffId], references: [id])
+  staffId     String
+  businessUser User?               @relation("BusinessAccount")
+  deliveries  Delivery[]
+  prices      ClientProductPrice[]
 
   @@map("clients")
 }
@@ -150,6 +155,41 @@ model DailyStockItem {
   @@map("daily_stock_items")
 }
 
+model ShopProduct {
+  id        String         @id @default(uuid())
+  name      String
+  price     Decimal        @db.Decimal(10, 2)
+  isActive  Boolean        @default(true)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  saleItems ShopSaleItem[]
+
+  @@map("shop_products")
+}
+
+model ShopSale {
+  id       String         @id @default(uuid())
+  saleDate DateTime       @default(now())
+  notes    String?
+  userId   String
+  user     User           @relation(fields: [userId], references: [id])
+  items    ShopSaleItem[]
+
+  @@map("shop_sales")
+}
+
+model ShopSaleItem {
+  id            String      @id @default(uuid())
+  quantity      Int
+  unitPrice     Decimal     @db.Decimal(10, 2)
+  shopSaleId    String
+  shopSale      ShopSale    @relation(fields: [shopSaleId], references: [id], onDelete: Cascade)
+  shopProductId String
+  shopProduct   ShopProduct @relation(fields: [shopProductId], references: [id])
+
+  @@map("shop_sale_items")
+}
+
 enum DailyStockStatus {
   OPEN
   CLOSED
@@ -158,6 +198,7 @@ enum DailyStockStatus {
 enum Role {
   ADMIN
   STAFF
+  BUSINESS
 }
 
 enum OrderStatus {

@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'STAFF';
+export type Role = 'ADMIN' | 'STAFF' | 'BUSINESS';
 
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'BAKING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
@@ -92,6 +92,31 @@ export interface Delivery {
 
 export interface DashboardDelivery extends Delivery {
   totalPrice: number;
+}
+
+export interface ShopProduct {
+  id: string;
+  name: string;
+  price: number;
+  isActive: boolean;
+  userId: string;
+}
+
+export interface ShopSaleItem {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  shopProductId: string;
+  shopProduct: Pick<ShopProduct, 'id' | 'name'>;
+}
+
+export interface ShopSale {
+  id: string;
+  saleDate: string;
+  notes?: string;
+  userId: string;
+  user: { id: string; name: string; client?: { id: string; name: string } | null };
+  items: ShopSaleItem[];
 }
 
 export type DailyStockStatus = 'OPEN' | 'CLOSED';

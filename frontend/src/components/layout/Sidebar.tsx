@@ -1,19 +1,29 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck, Store, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 
-const allNavItems = [
-  { to: '/dashboard', label: 'Paneli',       icon: LayoutDashboard, adminOnly: false },
-  { to: '/deliveries', label: 'Dërgimet',    icon: Truck,           adminOnly: false },
-  { to: '/clients',   label: 'Klientët',     icon: Users,           adminOnly: false },
-  { to: '/daily-stock', label: 'Stoku Ditor', icon: PackageCheck,    adminOnly: true  },
-  { to: '/staff',     label: 'Stafi',        icon: UserCog,         adminOnly: true  },
-  { to: '/products',  label: 'Produktet',    icon: Package,         adminOnly: true  },
-  { to: '/orders',    label: 'Porositë',     icon: ShoppingBag,     adminOnly: true  },
+const adminNavItems = [
+  { to: '/dashboard',      label: 'Paneli',          icon: LayoutDashboard },
+  { to: '/deliveries',     label: 'Dërgimet',         icon: Truck           },
+  { to: '/clients',        label: 'Klientët',         icon: Users           },
+  { to: '/daily-stock',    label: 'Stoku Ditor',      icon: PackageCheck    },
+  { to: '/business-sales', label: 'Shitjet Biznese',  icon: BarChart3       },
+  { to: '/staff',          label: 'Stafi',            icon: UserCog         },
+  { to: '/products',       label: 'Produktet',        icon: Package         },
+];
+
+const staffNavItems = [
+  { to: '/dashboard',  label: 'Paneli',   icon: LayoutDashboard },
+  { to: '/deliveries', label: 'Dërgimet', icon: Truck           },
+  { to: '/clients',    label: 'Klientët', icon: Users           },
+];
+
+const businessNavItems = [
+  { to: '/shop', label: 'Shitjet', icon: Store },
 ];
 
 interface SidebarProps {
@@ -22,7 +32,10 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
   const { user, logout } = useAuth();
-  const navItems = allNavItems.filter((item) => !item.adminOnly || user?.role === 'ADMIN');
+  const navItems =
+    user?.role === 'ADMIN' ? adminNavItems :
+    user?.role === 'BUSINESS' ? businessNavItems :
+    staffNavItems;
 
   const initials = user?.name
     .split(' ')

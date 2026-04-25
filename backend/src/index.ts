@@ -9,6 +9,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import clientRoutes from './routes/client.routes';
 import deliveryRoutes from './routes/delivery.routes';
 import dailyStockRoutes from './routes/dailyStock.routes';
+import shopRoutes from './routes/shop.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/daily-stock', dailyStockRoutes);
+app.use('/api/shop', shopRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 

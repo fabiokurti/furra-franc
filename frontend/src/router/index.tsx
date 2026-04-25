@@ -11,6 +11,14 @@ import { DeliveriesPage } from '@/pages/DeliveriesPage';
 import { DeliveryDetailPage } from '@/pages/DeliveryDetailPage';
 import { StaffPage } from '@/pages/StaffPage';
 import { DailyStockPage } from '@/pages/DailyStockPage';
+import { ShopPage } from '@/pages/ShopPage';
+import { BusinessSalesPage } from '@/pages/BusinessSalesPage';
+import { useAuth } from '@/context/AuthContext';
+
+function RoleRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={user?.role === 'BUSINESS' ? '/shop' : '/dashboard'} replace />;
+}
 
 export const router = createBrowserRouter([
   {
@@ -27,7 +35,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/', element: <Navigate to="/dashboard" replace /> },
+          { path: '/', element: <RoleRedirect /> },
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/products', element: <ProductsPage /> },
           { path: '/orders', element: <OrdersPage /> },
@@ -36,6 +44,8 @@ export const router = createBrowserRouter([
           { path: '/deliveries/:id', element: <DeliveryDetailPage /> },
           { path: '/staff', element: <StaffPage /> },
           { path: '/daily-stock', element: <DailyStockPage /> },
+          { path: '/shop', element: <ShopPage /> },
+          { path: '/business-sales', element: <BusinessSalesPage /> },
         ],
       },
     ],
