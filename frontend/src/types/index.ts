@@ -88,6 +88,7 @@ export interface Delivery {
   staffId: string;
   createdBy: Pick<User, 'id' | 'name'>;
   items: DeliveryItem[];
+  totalPrice?: number;
 }
 
 export interface DashboardDelivery extends Delivery {

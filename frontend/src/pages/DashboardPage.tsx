@@ -132,7 +132,7 @@ export function DashboardPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <PackageCheck className="h-4 w-4 text-primary" />
-              Stoku Ditor
+              Prodhimi Ditor
             </CardTitle>
             <div className="flex items-center gap-2">
               {dailyStock && (

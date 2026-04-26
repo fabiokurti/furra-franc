@@ -14,7 +14,7 @@ function getDayRange(dateStr?: string): { gte: Date; lt: Date } {
 const deliveryInclude = {
   client: { select: { id: true, name: true, address: true, phone: true } },
   createdBy: { select: { id: true, name: true } },
-  items: { include: { product: { select: { id: true, name: true, category: true } } } },
+  items: { include: { product: { select: { id: true, name: true, category: true, price: true } } } },
 };
 
 export async function getDeliveries(req: Request, res: Response): Promise<void> {
@@ -30,11 +30,29 @@ export async function getDeliveries(req: Request, res: Response): Promise<void> 
     where.staffId = req.user!.userId;
   }
 
-  const deliveries = await prisma.delivery.findMany({
+  const raw = await prisma.delivery.findMany({
     where,
     orderBy: { createdAt: 'asc' },
     include: deliveryInclude,
   });
+
+  // Attach totalPrice using client-specific prices where available
+  const clientIds = [...new Set(raw.map((d) => d.clientId))];
+  const clientPrices = await prisma.clientProductPrice.findMany({
+    where: { clientId: { in: clientIds } },
+  });
+  const priceMap = new Map<string, number>();
+  for (const cp of clientPrices) {
+    priceMap.set(`${cp.clientId}:${cp.productId}`, Number(cp.price));
+  }
+
+  const deliveries = raw.map((d) => ({
+    ...d,
+    totalPrice: d.items.reduce((sum, item) => {
+      const unit = priceMap.get(`${d.clientId}:${item.productId}`) ?? Number(item.product.price);
+      return sum + unit * item.quantity;
+    }, 0),
+  }));
 
   res.json({ deliveries, total: deliveries.length });
 }

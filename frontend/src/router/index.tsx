@@ -17,7 +17,8 @@ import { useAuth } from '@/context/AuthContext';
 
 function RoleRedirect() {
   const { user } = useAuth();
-  return <Navigate to={user?.role === 'BUSINESS' ? '/shop' : '/dashboard'} replace />;
+  const to = user?.role === 'BUSINESS' ? '/shop' : user?.role === 'STAFF' ? '/deliveries' : '/dashboard';
+  return <Navigate to={to} replace />;
 }
 
 export const router = createBrowserRouter([

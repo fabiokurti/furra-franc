@@ -10,16 +10,15 @@ const adminNavItems = [
   { to: '/dashboard',      label: 'Paneli',          icon: LayoutDashboard },
   { to: '/deliveries',     label: 'Dërgimet',         icon: Truck           },
   { to: '/clients',        label: 'Klientët',         icon: Users           },
-  { to: '/daily-stock',    label: 'Stoku Ditor',      icon: PackageCheck    },
+  { to: '/daily-stock',    label: 'Prodhimi Ditor',   icon: PackageCheck    },
   { to: '/business-sales', label: 'Shitjet Biznese',  icon: BarChart3       },
   { to: '/staff',          label: 'Stafi',            icon: UserCog         },
   { to: '/products',       label: 'Produktet',        icon: Package         },
 ];
 
 const staffNavItems = [
-  { to: '/dashboard',  label: 'Paneli',   icon: LayoutDashboard },
-  { to: '/deliveries', label: 'Dërgimet', icon: Truck           },
-  { to: '/clients',    label: 'Klientët', icon: Users           },
+  { to: '/deliveries', label: 'Dërgimet', icon: Truck  },
+  { to: '/clients',    label: 'Klientët', icon: Users  },
 ];
 
 const businessNavItems = [

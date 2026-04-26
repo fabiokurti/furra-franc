@@ -32,8 +32,8 @@ export function LoginForm() {
   const onSubmit = async (data: FormData) => {
     setServerError('');
     try {
-      await login(data.email, data.password);
-      navigate('/dashboard');
+      const role = await login(data.email, data.password);
+      navigate(role === 'BUSINESS' ? '/shop' : role === 'STAFF' ? '/deliveries' : '/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setServerError(error.response?.data?.message || 'Hyrja dështoi. Ju lutem provoni përsëri.');

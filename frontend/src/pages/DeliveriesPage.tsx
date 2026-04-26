@@ -105,7 +105,7 @@ export function DeliveriesPage() {
   };
 
   const setQty = (productId: string, qty: number) => {
-    if (qty < 1) return;
+    if (qty < 0) return;
     setSelectedItems((prev) =>
       prev.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i))
     );
@@ -177,6 +177,8 @@ export function DeliveriesPage() {
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
+  const grandTotal     = deliveries.reduce((s, d) => s + (d.totalPrice ?? 0), 0);
+  const paidTotal      = deliveries.filter((d) => d.isPaid).reduce((s, d) => s + (d.totalPrice ?? 0), 0);
 
   // ── render ─────────────────────────────────────────────────────
   return (
@@ -208,8 +210,14 @@ export function DeliveriesPage() {
           <span className="text-muted-foreground">kryer</span>
         </div>
         <div className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm">
-          <span className="font-semibold">{deliveries.length}</span>
-          <span className="text-muted-foreground">gjithsej</span>
+          <Banknote className="h-4 w-4 text-primary" />
+          <span className="font-semibold text-green-600">{grandTotal.toFixed(0)} L</span>
+          <span className="text-muted-foreground">total</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm">
+          <Banknote className="h-4 w-4 text-muted-foreground" />
+          <span className="font-semibold">{paidTotal.toFixed(0)} L</span>
+          <span className="text-muted-foreground">paguar</span>
         </div>
       </div>
 
@@ -302,6 +310,9 @@ export function DeliveriesPage() {
                           </span>
                         ))}
                       </div>
+                      {delivery.totalPrice !== undefined && (
+                        <p className="mt-2 text-sm font-bold text-green-600">{delivery.totalPrice.toFixed(0)} L</p>
+                      )}
                       {delivery.notes && (
                         <p className="mt-2 text-xs italic text-muted-foreground">📝 {delivery.notes}</p>
                       )}
@@ -329,7 +340,7 @@ export function DeliveriesPage() {
                           </Button>
                         </>
                       )}
-                      {isAdmin && delivery.status === 'COMPLETED' && (
+                      {delivery.status === 'COMPLETED' && (
                         <Button
                           size="sm"
                           variant={delivery.isPaid ? 'outline' : 'default'}
@@ -449,7 +460,7 @@ export function DeliveriesPage() {
                                 <div className="flex items-center gap-1">
                                   <button
                                     type="button"
-                                    onClick={() => setQty(product.id, item.quantity - 1)}
+                                    onClick={() => setQty(product.id, Math.max(1, item.quantity - 1))}
                                     className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent"
                                   >
                                     <Minus className="h-3 w-3" />
@@ -457,8 +468,12 @@ export function DeliveriesPage() {
                                   <Input
                                     type="number"
                                     min={1}
-                                    value={item.quantity}
-                                    onChange={(e) => setQty(product.id, parseInt(e.target.value) || 1)}
+                                    value={item.quantity === 0 ? '' : item.quantity}
+                                    onChange={(e) => {
+                                      const n = parseInt(e.target.value);
+                                      setQty(product.id, isNaN(n) ? 0 : n);
+                                    }}
+                                    onBlur={() => { if (!item.quantity || item.quantity < 1) setQty(product.id, 1); }}
                                     className="h-6 w-12 text-center text-xs px-1"
                                   />
                                   <button
