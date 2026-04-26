@@ -61,7 +61,7 @@ function PriceRow({
   return (
     <div className="flex items-center justify-between px-3 py-2 gap-3">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate">{product.name}</p>
+        <p className="text-xs font-medium truncate" title={product.name}>{product.name}</p>
         <p className="text-xs text-muted-foreground">{product.category}</p>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
