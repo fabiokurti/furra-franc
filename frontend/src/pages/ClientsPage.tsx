@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Phone, MapPin, User, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Phone, MapPin, User, ChevronDown, ChevronUp, Check, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -107,6 +107,7 @@ export function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [serverError, setServerError] = useState('');
   const [expandedPrices, setExpandedPrices] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   // priceCache: clientId -> map of productId -> price
   const [priceCache, setPriceCache] = useState<Record<string, Record<string, number>>>({});
 
@@ -205,6 +206,16 @@ export function ClientsPage() {
         )}
       </div>
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Kërko klient..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
@@ -221,7 +232,7 @@ export function ClientsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {clients.map((client) => {
+          {clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).map((client) => {
             const isExpanded = expandedPrices === client.id;
             const clientPriceMap = priceCache[client.id] || {};
 

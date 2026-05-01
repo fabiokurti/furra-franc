@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus } from 'lucide-react';
+import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -20,6 +20,7 @@ export function StaffPage() {
   const [allClients, setAllClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   // Create staff dialog
   const [showCreate, setShowCreate] = useState(false);
@@ -164,8 +165,18 @@ export function StaffPage() {
         </div>
       </div>
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Kërko staf..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {staffList.map((staff) => {
+        {staffList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase())).map((staff) => {
           const initials = staff.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
           const isExpanded = expandedStaff === staff.id;
 
