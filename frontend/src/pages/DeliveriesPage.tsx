@@ -43,6 +43,7 @@ export function DeliveriesPage() {
   const [dialogOpen, setDialogOpen]   = useState(false);
   const [serverError, setServerError] = useState('');
   const [staffFilter, setStaffFilter] = useState('ALL');
+  const [clientFilter, setClientFilter] = useState('ALL');
   const [updatingId, setUpdatingId]   = useState<string | null>(null);
   const [dailyStock, setDailyStock]   = useState<DailyStock | null>(null);
 
@@ -59,13 +60,14 @@ export function DeliveriesPage() {
     setIsLoading(true);
     const params: Record<string, string> = { date: today };
     if (isAdmin && staffFilter !== 'ALL') params.staffId = staffFilter;
+    if (isAdmin && clientFilter !== 'ALL') params.clientId = clientFilter;
     api.get('/deliveries', { params })
       .then((res) => setDeliveries(res.data.deliveries))
       .catch(console.error)
       .finally(() => setIsLoading(false));
   };
 
-  useEffect(() => { fetchDeliveries(); }, [staffFilter]);
+  useEffect(() => { fetchDeliveries(); }, [staffFilter, clientFilter]);
 
   useEffect(() => {
     api.get('/clients').then((res) => setClients(res.data.clients));
@@ -221,21 +223,39 @@ export function DeliveriesPage() {
         </div>
       </div>
 
-      {/* Admin staff filter */}
-      {isAdmin && staffUsers.length > 0 && (
-        <div className="flex items-center gap-3">
-          <Label className="shrink-0 text-sm">Shpërndarësi:</Label>
-          <Select value={staffFilter} onValueChange={setStaffFilter}>
-            <SelectTrigger className="w-52">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Të gjithë</SelectItem>
-              {staffUsers.map((u) => (
-                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Admin filters */}
+      {isAdmin && (
+        <div className="flex flex-wrap items-center gap-3">
+          {staffUsers.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Label className="shrink-0 text-sm">Stafi:</Label>
+              <Select value={staffFilter} onValueChange={setStaffFilter}>
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Të gjithë</SelectItem>
+                  {staffUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Label className="shrink-0 text-sm">Klienti:</Label>
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Të gjithë</SelectItem>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
@@ -310,14 +330,14 @@ export function DeliveriesPage() {
                           </span>
                         ))}
                       </div>
-                      {delivery.totalPrice !== undefined && (
-                        <p className="mt-2 text-sm font-bold text-green-600">{delivery.totalPrice.toFixed(0)} L</p>
-                      )}
                       {delivery.notes && (
                         <p className="mt-2 text-xs italic text-muted-foreground">📝 {delivery.notes}</p>
                       )}
                     </div>
-                    <div className="flex flex-col gap-2 shrink-0">
+                    <div className="flex flex-col gap-2 shrink-0 items-end">
+                      {delivery.totalPrice !== undefined && (
+                        <span className="text-lg font-bold text-primary">{delivery.totalPrice.toFixed(0)} L</span>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"

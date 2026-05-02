@@ -13,6 +13,8 @@ import { StaffPage } from '@/pages/StaffPage';
 import { DailyStockPage } from '@/pages/DailyStockPage';
 import { ShopPage } from '@/pages/ShopPage';
 import { BusinessSalesPage } from '@/pages/BusinessSalesPage';
+import { ClientDetailPage } from '@/pages/ClientDetailPage';
+import { StaffDetailPage } from '@/pages/StaffDetailPage';
 import { useAuth } from '@/context/AuthContext';
 
 function RoleRedirect() {
@@ -47,6 +49,8 @@ export const router = createBrowserRouter([
           { path: '/daily-stock', element: <DailyStockPage /> },
           { path: '/shop', element: <ShopPage /> },
           { path: '/business-sales', element: <BusinessSalesPage /> },
+          { path: '/clients/:id', element: <ClientDetailPage /> },
+          { path: '/staff/:id', element: <StaffDetailPage /> },
         ],
       },
     ],

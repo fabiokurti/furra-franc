@@ -12,8 +12,10 @@ const deliveryInclude = {
 };
 
 export async function getDashboardStats(req: Request, res: Response): Promise<void> {
-  // date filter — defaults to today
   const dateStr = req.query.date as string | undefined;
+  const staffId = req.query.staffId as string | undefined;
+  const clientId = req.query.clientId as string | undefined;
+
   let dateFilter: { gte: Date; lt: Date } | undefined;
 
   if (dateStr === 'all') {
@@ -27,9 +29,11 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     dateFilter = { gte: start, lt: end };
   }
 
-  const deliveryWhere = {
+  const deliveryWhere: Record<string, unknown> = {
     status: 'COMPLETED' as const,
     ...(dateFilter ? { deliveryDate: dateFilter } : {}),
+    ...(staffId ? { staffId } : {}),
+    ...(clientId ? { clientId } : {}),
   };
 
   const [totalOrders, pendingOrders, revenueAgg, totalProducts, recentOrders, rawDeliveries] = await Promise.all([

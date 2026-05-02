@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus, Search } from 'lucide-react';
+import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus, Search, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import type { User, Client } from '@/types';
 
@@ -16,6 +17,7 @@ interface StaffWithClients extends User {
 }
 
 export function StaffPage() {
+  const navigate = useNavigate();
   const [staffList, setStaffList] = useState<StaffWithClients[]>([]);
   const [allClients, setAllClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -195,6 +197,9 @@ export function StaffPage() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Badge variant="secondary">{staff.clients.length} klientë</Badge>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" title="Historia e dërgesave" onClick={() => navigate(`/staff/${staff.id}`)}>
+                      <History className="h-3.5 w-3.5" />
+                    </Button>
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(staff)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>

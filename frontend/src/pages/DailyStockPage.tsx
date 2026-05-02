@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { PackageCheck, Lock, RefreshCw, Plus, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { PackageCheck, Lock, RefreshCw, Plus, ChevronDown, ChevronUp, History, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import api from '@/lib/api';
+import { formatDateAL } from '@/lib/date';
+import { useAuth } from '@/context/AuthContext';
 import type { DailyStock, Product } from '@/types';
 
 type InputMap = Record<string, number>;
@@ -64,6 +66,8 @@ function ProductForm({
 }
 
 export function DailyStockPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [entry, setEntry] = useState<DailyStock | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [quantities, setQuantities] = useState<InputMap>({});
@@ -206,6 +210,22 @@ export function DailyStockPage() {
     }
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm('Fshi këtë prodhim ditor? Ky veprim është i pakthyeshëm.')) return;
+    await api.delete(`/daily-stock/${id}`);
+    if (entry?.id === id) {
+      setEntry(null);
+    }
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+    await load();
+  }
+
+  async function handleCloseHistory(id: string) {
+    await api.patch(`/daily-stock/${id}/close`);
+    setHistory((prev) => prev.map((h) => h.id === id ? { ...h, status: 'CLOSED' } : h));
+    if (entry?.id === id) await load();
+  }
+
   async function handleCreateNextDay(e: React.FormEvent) {
     e.preventDefault();
     setIsCreatingNext(true);
@@ -222,9 +242,7 @@ export function DailyStockPage() {
     }
   }
 
-  const today = new Date().toLocaleDateString('sq-AL', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
+  const today = formatDateAL(new Date(), true);
 
   if (isLoading) {
     return (
@@ -281,7 +299,7 @@ export function DailyStockPage() {
                   <Plus className="h-4 w-4 mr-1" /> Shto Produkte
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => setShowCloseDialog(true)}>
-                  <Lock className="h-4 w-4 mr-1" /> Mbyllo Prodhimin
+                  <Lock className="h-4 w-4 mr-1" /> Mbyll Prodhimin
                 </Button>
               </>
             )}
@@ -295,6 +313,11 @@ export function DailyStockPage() {
                   <Plus className="h-4 w-4 mr-1" /> Hap Prodhimin e Nesërm
                 </Button>
               </>
+            )}
+            {isAdmin && (
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(entry.id)}>
+                <Trash2 className="h-4 w-4 mr-1" /> Fshi
+              </Button>
             )}
           </div>
         )}
@@ -497,16 +520,14 @@ export function DailyStockPage() {
               const totalDerguar = h.items.reduce((s, i) => s + i.delivered, 0);
               const totalMbetur = h.items.reduce((s, i) => s + i.remaining, 0);
               const isExpanded = expandedIds.has(h.id);
-              const dateLabel = new Date(h.date).toLocaleDateString('sq-AL', {
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-              });
+              const dateLabel = formatDateAL(h.date, true);
               return (
                 <div key={h.id} className="rounded-md border overflow-hidden">
-                  <button
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left"
-                    onClick={() => toggleExpand(h.id)}
-                  >
-                    <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center justify-between px-4 py-3 gap-2">
+                    <button
+                      className="flex-1 flex items-center gap-3 flex-wrap text-left hover:opacity-80 transition-opacity"
+                      onClick={() => toggleExpand(h.id)}
+                    >
                       <span className="font-medium text-sm">{dateLabel}</span>
                       <Badge variant={h.status === 'OPEN' ? 'default' : 'secondary'} className="text-xs">
                         {h.status === 'OPEN' ? 'I hapur' : 'Mbyllur'}
@@ -514,9 +535,21 @@ export function DailyStockPage() {
                       <span className="text-xs text-muted-foreground">
                         Prodhuar <strong>{totalProdhuar}</strong> · Dërguar <strong className="text-orange-600">{totalDerguar}</strong> · Mbetur <strong className="text-green-600">{totalMbetur}</strong>
                       </span>
-                    </div>
-                    {isExpanded ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
-                  </button>
+                      {isExpanded ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                    </button>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {h.status === 'OPEN' && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => handleCloseHistory(h.id)}>
+                            <Lock className="h-3 w-3" /> Mbyll
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive hover:text-destructive gap-1" onClick={() => handleDelete(h.id)}>
+                          <Trash2 className="h-3 w-3" /> Fshi
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   {isExpanded && (
                     <div className="border-t">
                       <table className="w-full text-sm">
@@ -556,7 +589,7 @@ export function DailyStockPage() {
       <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
-            <DialogTitle>Mbyllo Prodhimin & Fillo të Ardhmen</DialogTitle>
+            <DialogTitle>Mbyll Prodhimin & Fillo të Ardhmen</DialogTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Plotëso sasitë për prodhimin e radhës (opsionale). Lëri bosh nëse nuk dëshiron të hapësh tani.
             </p>
@@ -572,7 +605,7 @@ export function DailyStockPage() {
             <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Anulo</Button>
             <Button variant="destructive" onClick={handleCloseAndNext} disabled={isClosing}>
               <Lock className="h-4 w-4 mr-2" />
-              {isClosing ? 'Duke mbyllur...' : 'Mbyllo & Fillo të Ardhmen'}
+              {isClosing ? 'Duke mbyllur...' : 'Mbyll & Fillo të Ardhmen'}
             </Button>
           </DialogFooter>
         </DialogContent>

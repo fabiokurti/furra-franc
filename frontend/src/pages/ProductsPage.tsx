@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,6 +34,7 @@ export function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [serverError, setServerError] = useState('');
+  const [search, setSearch] = useState('');
 
   const {
     register,
@@ -114,6 +115,16 @@ export function ProductsPage() {
         </Button>
       </div>
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Kërko produkt..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
@@ -128,7 +139,7 @@ export function ProductsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
+          {products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase())).map((product) => (
             <Card key={product.id} className="flex flex-col">
               <CardContent className="flex flex-col flex-1 p-5 gap-3">
                 <div className="flex items-start justify-between gap-2">
@@ -144,7 +155,7 @@ export function ProductsPage() {
                 <div className="flex items-center justify-between mt-auto pt-2 border-t">
                   <div>
                     <p className="text-lg font-bold text-primary">{Number(product.price).toFixed(0)} L</p>
-                    <p className="text-xs text-muted-foreground">{product.stock} in stock</p>
+                    <p className="text-xs text-muted-foreground">{product.stock} në stok</p>
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(product)}>

@@ -186,3 +186,14 @@ export async function reopenDay(req: Request, res: Response): Promise<void> {
   const full = await fetchEntryWithDelivered(id);
   res.json({ entry: full });
 }
+
+export async function deleteDay(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+
+  const entry = await prisma.dailyStock.findUnique({ where: { id } });
+  if (!entry) { res.status(404).json({ message: 'Nuk u gjet' }); return; }
+
+  await prisma.dailyStockItem.deleteMany({ where: { dailyStockId: id } });
+  await prisma.dailyStock.delete({ where: { id } });
+  res.status(204).send();
+}

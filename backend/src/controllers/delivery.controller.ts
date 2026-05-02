@@ -19,12 +19,20 @@ const deliveryInclude = {
 
 export async function getDeliveries(req: Request, res: Response): Promise<void> {
   const isAdmin = req.user!.role === 'ADMIN';
-  const { date, staffId } = req.query as { date?: string; staffId?: string };
+  const { date, staffId, clientId } = req.query as { date?: string; staffId?: string; clientId?: string };
 
-  const dateRange = getDayRange(date);
-  const where: Record<string, unknown> = { deliveryDate: dateRange };
+  const where: Record<string, unknown> = {};
 
-  if (isAdmin && staffId) {
+  // Skip date filter when fetching full history for a client or staff
+  if (!clientId && !staffId) {
+    where.deliveryDate = getDayRange(date);
+  } else if (date && date !== 'all') {
+    where.deliveryDate = getDayRange(date);
+  }
+
+  if (isAdmin && clientId) {
+    where.clientId = clientId;
+  } else if (isAdmin && staffId) {
     where.staffId = staffId;
   } else if (!isAdmin) {
     where.staffId = req.user!.userId;

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Phone, MapPin, User, ChevronDown, ChevronUp, Check, Search } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Plus, Pencil, Trash2, Loader2, Phone, MapPin, User, ChevronDown, ChevronUp, Check, Search, History } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import type { Client, ClientProductPrice, Product, User as UserType } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -41,17 +42,30 @@ function PriceRow({
   const [value, setValue] = useState(String(currentPrice ?? defaultPrice));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+  const userEditing = useRef(false);
+
+  // Sync displayed value when the real price loads from the server
+  useEffect(() => {
+    if (!userEditing.current) {
+      setValue(String(currentPrice ?? defaultPrice));
+    }
+  }, [currentPrice, defaultPrice]);
 
   const save = async () => {
     const price = parseFloat(value);
     if (isNaN(price) || price < 0) return;
     setSaving(true);
+    setError('');
     try {
       await api.put(`/clients/${clientId}/prices/${product.id}`, { price });
       onSaved(product.id, price);
       setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
-    } catch {/* silent */} finally {
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || 'Ruajtja dështoi');
+    } finally {
       setSaving(false);
     }
   };
@@ -59,38 +73,43 @@ function PriceRow({
   const isDirty = parseFloat(value) !== (currentPrice ?? defaultPrice);
 
   return (
-    <div className="flex items-center justify-between px-3 py-2 gap-3">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate" title={product.name}>{product.name}</p>
-        <p className="text-xs text-muted-foreground">{product.category}</p>
+    <div className="px-3 py-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium truncate" title={product.name}>{product.name}</p>
+          <p className="text-xs text-muted-foreground">{product.category}</p>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {currentPrice === null && (
+            <span className="text-xs text-muted-foreground">def: {defaultPrice} L</span>
+          )}
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            value={value}
+            onFocus={() => { userEditing.current = true; }}
+            onBlur={() => { userEditing.current = false; }}
+            onChange={(e) => { setValue(e.target.value); setError(''); }}
+            onKeyDown={(e) => e.key === 'Enter' && isDirty && save()}
+            className="h-7 w-20 text-xs text-right px-2"
+          />
+          <span className="text-xs text-muted-foreground">L</span>
+          {saved ? (
+            <Check className="h-4 w-4 text-green-500 shrink-0" />
+          ) : (
+            <Button
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              disabled={!isDirty || saving}
+              onClick={save}
+            >
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        {currentPrice === null && (
-          <span className="text-xs text-muted-foreground">def: {defaultPrice} L</span>
-        )}
-        <Input
-          type="number"
-          min={0}
-          step="0.01"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && isDirty && save()}
-          className="h-7 w-20 text-xs text-right px-2"
-        />
-        <span className="text-xs text-muted-foreground">L</span>
-        {saved ? (
-          <Check className="h-4 w-4 text-green-500 shrink-0" />
-        ) : (
-          <Button
-            size="icon"
-            className="h-7 w-7 shrink-0"
-            disabled={!isDirty || saving}
-            onClick={save}
-          >
-            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-          </Button>
-        )}
-      </div>
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   );
 }
@@ -98,6 +117,7 @@ function PriceRow({
 export function ClientsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
+  const navigate = useNavigate();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -248,16 +268,21 @@ export function ClientsPage() {
                         </Badge>
                       )}
                     </div>
-                    {isAdmin && (
-                      <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(client.id)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" title="Historia e dërgesave" onClick={() => navigate(`/clients/${client.id}`)}>
+                        <History className="h-3.5 w-3.5" />
+                      </Button>
+                      {isAdmin && (
+                        <>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(client.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-1.5 text-sm text-muted-foreground mt-1">

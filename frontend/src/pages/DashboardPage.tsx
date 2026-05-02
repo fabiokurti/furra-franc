@@ -6,9 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
-import type { DashboardStats, DashboardDelivery, DailyStock } from '@/types';
+import type { DashboardStats, DashboardDelivery, DailyStock, Client } from '@/types';
+
+interface StaffUser { id: string; name: string; email: string; role: string; }
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -16,16 +20,25 @@ function todayISO() {
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [dailyStock, setDailyStock] = useState<DailyStock | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [paidError, setPaidError] = useState('');
   const [dateFilter, setDateFilter] = useState(todayISO());
+  const [staffFilter, setStaffFilter] = useState('ALL');
+  const [clientFilter, setClientFilter] = useState('ALL');
+  const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
 
-  const fetchStats = (date: string) => {
+  const fetchStats = (date: string, staff: string, client: string) => {
     setIsLoading(true);
-    const params = date === 'all' ? { date: 'all' } : { date };
+    const params: Record<string, string> = date === 'all' ? { date: 'all' } : { date };
+    if (isAdmin && staff !== 'ALL') params.staffId = staff;
+    if (isAdmin && client !== 'ALL') params.clientId = client;
     api
       .get('/dashboard/stats', { params })
       .then((res) => setStats(res.data))
@@ -34,8 +47,14 @@ export function DashboardPage() {
   };
 
   useEffect(() => {
-    fetchStats(dateFilter);
-  }, [dateFilter]);
+    fetchStats(dateFilter, staffFilter, clientFilter);
+  }, [dateFilter, staffFilter, clientFilter]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.get('/auth/staff-users').then((res) => setStaffUsers(res.data.users)).catch(() => {});
+    api.get('/clients').then((res) => setClients(res.data.clients)).catch(() => {});
+  }, [isAdmin]);
 
   useEffect(() => {
     api.get('/daily-stock/today')
@@ -209,7 +228,7 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {/* Date filter */}
+            {/* Filters */}
             <div className="flex items-center gap-2 flex-wrap">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <CalendarDays className="h-3.5 w-3.5" />Data:
@@ -236,6 +255,30 @@ export function DashboardPage() {
               >
                 Të gjitha
               </Button>
+              {isAdmin && (
+                <>
+                  <Label className="text-xs text-muted-foreground shrink-0">Stafi:</Label>
+                  <Select value={staffFilter} onValueChange={setStaffFilter}>
+                    <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">Të gjithë</SelectItem>
+                      {staffUsers.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Label className="text-xs text-muted-foreground shrink-0">Klienti:</Label>
+                  <Select value={clientFilter} onValueChange={setClientFilter}>
+                    <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">Të gjithë</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
