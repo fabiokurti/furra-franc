@@ -27,7 +27,7 @@ const statusConfig = {
 };
 
 // Selected product with quantity
-interface SelectedItem { productId: string; quantity: number }
+interface SelectedItem { productId: string; quantity: number | null }
 
 export function DeliveriesPage() {
   const { user } = useAuth();
@@ -102,12 +102,12 @@ export function DeliveriesPage() {
     setSelectedItems((prev) => {
       const exists = prev.find((i) => i.productId === productId);
       if (exists) return prev.filter((i) => i.productId !== productId);
-      return [...prev, { productId, quantity: 1 }];
+      return [...prev, { productId, quantity: null }];
     });
   };
 
-  const setQty = (productId: string, qty: number) => {
-    if (qty < 0) return;
+  const setQty = (productId: string, qty: number | null) => {
+    if (qty !== null && qty < 0) return;
     setSelectedItems((prev) =>
       prev.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i))
     );
@@ -118,13 +118,14 @@ export function DeliveriesPage() {
   const onSubmit = async () => {
     setServerError('');
     if (!selectedClientId) { setServerError('Zgjidhni një klient'); return; }
-    if (selectedItems.length === 0) { setServerError('Zgjidhni të paktën një produkt'); return; }
+    const itemsToSend = selectedItems.filter((i) => (i.quantity ?? 0) > 0);
+    if (itemsToSend.length === 0) { setServerError('Zgjidhni të paktën një produkt me sasi > 0'); return; }
     setIsSubmitting(true);
     try {
       await api.post('/deliveries', {
         clientId: selectedClientId,
         notes: notes || undefined,
-        items: selectedItems,
+        items: itemsToSend,
       });
       setDialogOpen(false);
       fetchDeliveries();
@@ -171,11 +172,14 @@ export function DeliveriesPage() {
     ? products.filter((p) => stockItemMap[p.id] !== undefined)
     : products.filter((p) => p.isActive);
 
-  const productsByCategory = dialogProducts.reduce<Record<string, Product[]>>((acc, p) => {
-    if (!acc[p.category]) acc[p.category] = [];
-    acc[p.category].push(p);
-    return acc;
-  }, {});
+  const EXCLUDED_DELIVERY_CATEGORIES = ['Tortë', 'Ëmbëlsirë', 'Pastë'];
+  const productsByCategory = dialogProducts
+    .filter((p) => !EXCLUDED_DELIVERY_CATEGORIES.includes(p.category))
+    .reduce<Record<string, Product[]>>((acc, p) => {
+      if (!acc[p.category]) acc[p.category] = [];
+      acc[p.category].push(p);
+      return acc;
+    }, {});
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -480,25 +484,25 @@ export function DeliveriesPage() {
                                 <div className="flex items-center gap-1">
                                   <button
                                     type="button"
-                                    onClick={() => setQty(product.id, Math.max(1, item.quantity - 1))}
+                                    onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))}
                                     className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent"
                                   >
                                     <Minus className="h-3 w-3" />
                                   </button>
                                   <Input
-                                    type="number"
-                                    min={1}
-                                    value={item.quantity === 0 ? '' : item.quantity}
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={item.quantity ?? ''}
                                     onChange={(e) => {
-                                      const n = parseInt(e.target.value);
-                                      setQty(product.id, isNaN(n) ? 0 : n);
+                                      const raw = e.target.value.replace(/\D/g, '');
+                                      setQty(product.id, raw === '' ? null : parseInt(raw));
                                     }}
-                                    onBlur={() => { if (!item.quantity || item.quantity < 1) setQty(product.id, 1); }}
                                     className="h-6 w-12 text-center text-xs px-1"
                                   />
                                   <button
                                     type="button"
-                                    onClick={() => setQty(product.id, item.quantity + 1)}
+                                    onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)}
                                     className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent"
                                   >
                                     <Plus className="h-3 w-3" />
