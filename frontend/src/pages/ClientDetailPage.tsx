@@ -135,7 +135,7 @@ export function ClientDetailPage() {
       <div className="space-y-6 print:hidden">
         {/* After-print confirm banner */}
         {showAfterPrintConfirm && (
-          <div className="flex items-center justify-between rounded-lg border border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 px-4 py-3 gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-lg border border-green-300 bg-green-50 dark:bg-green-950/30 dark:border-green-800 px-4 py-3 gap-3">
             <p className="text-sm font-medium text-green-800 dark:text-green-300">
               Shëno të gjitha {unpaidDeliveries.length} dërgesa si të paguara?
             </p>
@@ -190,24 +190,24 @@ export function ClientDetailPage() {
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Card>
-            <CardContent className="pt-4 pb-3">
+            <CardContent className="pt-3 pb-3 px-3 sm:px-6">
               <p className="text-xs text-muted-foreground">Totali</p>
-              <p className="text-xl font-bold mt-0.5">{totalAmount.toFixed(0)} L</p>
+              <p className="text-lg sm:text-xl font-bold mt-0.5">{totalAmount.toFixed(0)} L</p>
               <p className="text-xs text-muted-foreground mt-0.5">{deliveries.length} dërgesa</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-4 pb-3">
+            <CardContent className="pt-3 pb-3 px-3 sm:px-6">
               <p className="text-xs text-muted-foreground">Paguar</p>
-              <p className="text-xl font-bold mt-0.5 text-green-600">{paidAmount.toFixed(0)} L</p>
+              <p className="text-lg sm:text-xl font-bold mt-0.5 text-green-600">{paidAmount.toFixed(0)} L</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-4 pb-3">
+            <CardContent className="pt-3 pb-3 px-3 sm:px-6">
               <p className="text-xs text-muted-foreground">Pa paguar</p>
-              <p className="text-xl font-bold mt-0.5 text-destructive">{unpaidAmount.toFixed(0)} L</p>
+              <p className="text-lg sm:text-xl font-bold mt-0.5 text-destructive">{unpaidAmount.toFixed(0)} L</p>
             </CardContent>
           </Card>
         </div>

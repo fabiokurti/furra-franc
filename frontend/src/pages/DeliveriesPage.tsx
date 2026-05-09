@@ -229,12 +229,12 @@ export function DeliveriesPage() {
 
       {/* Admin filters */}
       {isAdmin && (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3">
           {staffUsers.length > 0 && (
             <div className="flex items-center gap-2">
               <Label className="shrink-0 text-sm">Stafi:</Label>
               <Select value={staffFilter} onValueChange={setStaffFilter}>
-                <SelectTrigger className="w-44">
+                <SelectTrigger className="w-full sm:w-44">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -394,7 +394,7 @@ export function DeliveriesPage() {
 
       {/* ── Create Delivery Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[92vh] flex flex-col p-0 gap-0">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[92vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
             <DialogTitle>Dërgim i ri</DialogTitle>
           </DialogHeader>

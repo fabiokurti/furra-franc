@@ -346,18 +346,18 @@ export function DailyStockPage() {
         <div className="space-y-4">
 
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-3">
-            <Card><CardContent className="pt-4 pb-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <Card><CardContent className="pt-3 pb-3 px-3 sm:px-6">
               <p className="text-xs text-muted-foreground">Prodhuar</p>
-              <p className="text-xl font-bold mt-0.5">{entry.items.reduce((s, i) => s + i.quantity, 0)}</p>
+              <p className="text-lg sm:text-xl font-bold mt-0.5">{entry.items.reduce((s, i) => s + i.quantity, 0)}</p>
             </CardContent></Card>
-            <Card><CardContent className="pt-4 pb-3">
+            <Card><CardContent className="pt-3 pb-3 px-3 sm:px-6">
               <p className="text-xs text-muted-foreground">Dërguar</p>
-              <p className="text-xl font-bold mt-0.5 text-orange-600">{entry.items.reduce((s, i) => s + i.delivered, 0)}</p>
+              <p className="text-lg sm:text-xl font-bold mt-0.5 text-orange-600">{entry.items.reduce((s, i) => s + i.delivered, 0)}</p>
             </CardContent></Card>
-            <Card><CardContent className="pt-4 pb-3">
+            <Card><CardContent className="pt-3 pb-3 px-3 sm:px-6">
               <p className="text-xs text-muted-foreground">Mbetur</p>
-              <p className="text-xl font-bold mt-0.5 text-green-600">{entry.items.reduce((s, i) => s + i.remaining, 0)}</p>
+              <p className="text-lg sm:text-xl font-bold mt-0.5 text-green-600">{entry.items.reduce((s, i) => s + i.remaining, 0)}</p>
             </CardContent></Card>
           </div>
 
@@ -422,34 +422,36 @@ export function DailyStockPage() {
                 <CardTitle className="text-base">{category}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left px-4 py-2 font-medium">Produkti</th>
-                      <th className="text-center px-4 py-2 font-medium">Prodhuar</th>
-                      <th className="text-center px-4 py-2 font-medium">Dërguar</th>
-                      <th className="text-center px-4 py-2 font-medium">Mbetur</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((item) => (
-                      <tr key={item.id} className="border-b last:border-0">
-                        <td className="px-4 py-2 font-medium">{item.product.name}</td>
-                        <td className="px-4 py-2 text-center">{item.quantity}</td>
-                        <td className="px-4 py-2 text-center text-orange-600">{item.delivered}</td>
-                        <td className="px-4 py-2 text-center">
-                          <span className={
-                            item.remaining < 0 ? 'text-red-600 font-semibold' :
-                            item.remaining === 0 ? 'text-muted-foreground' :
-                            'text-green-600 font-semibold'
-                          }>
-                            {item.remaining}
-                          </span>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left px-4 py-2 font-medium">Produkti</th>
+                        <th className="text-center px-4 py-2 font-medium">Prodhuar</th>
+                        <th className="text-center px-4 py-2 font-medium">Dërguar</th>
+                        <th className="text-center px-4 py-2 font-medium">Mbetur</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr key={item.id} className="border-b last:border-0">
+                          <td className="px-4 py-2 font-medium">{item.product.name}</td>
+                          <td className="px-4 py-2 text-center">{item.quantity}</td>
+                          <td className="px-4 py-2 text-center text-orange-600">{item.delivered}</td>
+                          <td className="px-4 py-2 text-center">
+                            <span className={
+                              item.remaining < 0 ? 'text-red-600 font-semibold' :
+                              item.remaining === 0 ? 'text-muted-foreground' :
+                              'text-green-600 font-semibold'
+                            }>
+                              {item.remaining}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -551,7 +553,7 @@ export function DailyStockPage() {
                     )}
                   </div>
                   {isExpanded && (
-                    <div className="border-t">
+                    <div className="border-t overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="bg-muted/50">
@@ -587,7 +589,7 @@ export function DailyStockPage() {
 
       {/* Close dialog */}
       <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-6 pt-6 pb-3 border-b shrink-0">
             <DialogTitle>Mbyll Prodhimin & Fillo të Ardhmen</DialogTitle>
             <p className="text-sm text-muted-foreground mt-1">

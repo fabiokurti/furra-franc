@@ -173,7 +173,7 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <div className="rounded-lg bg-muted/50 px-4 py-3">
                   <p className="text-xs text-muted-foreground">Fillimi</p>
                   <p className="text-xl font-bold mt-0.5">{dailyStock.items.reduce((s, i) => s + i.quantity, 0)}</p>
@@ -229,7 +229,7 @@ export function DashboardPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <CalendarDays className="h-3.5 w-3.5" />Data:
               </Label>
@@ -237,7 +237,7 @@ export function DashboardPage() {
                 type="date"
                 value={dateFilter === 'all' ? '' : dateFilter}
                 onChange={(e) => setDateFilter(e.target.value || todayISO())}
-                className="h-8 w-38 text-sm"
+                className="h-8 w-32 sm:w-38 text-sm"
               />
               <Button
                 size="sm"
@@ -259,7 +259,7 @@ export function DashboardPage() {
                 <>
                   <Label className="text-xs text-muted-foreground shrink-0">Stafi:</Label>
                   <Select value={staffFilter} onValueChange={setStaffFilter}>
-                    <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-8 w-28 sm:w-36 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ALL">Të gjithë</SelectItem>
                       {staffUsers.map((s) => (
@@ -269,7 +269,7 @@ export function DashboardPage() {
                   </Select>
                   <Label className="text-xs text-muted-foreground shrink-0">Klienti:</Label>
                   <Select value={clientFilter} onValueChange={setClientFilter}>
-                    <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-8 w-28 sm:w-36 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ALL">Të gjithë</SelectItem>
                       {clients.map((c) => (
