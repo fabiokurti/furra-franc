@@ -197,12 +197,10 @@ export function DeliveriesPage() {
           <h1 className="text-2xl font-bold">Dërgimet e Sotme</h1>
           <p className="text-muted-foreground capitalize">{formatDate(today)}</p>
         </div>
-        {!isAdmin && (
-          <Button onClick={openCreate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Krijo dërgim
-          </Button>
-        )}
+        <Button onClick={openCreate} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Krijo dërgim
+        </Button>
       </div>
 
       {/* Summary */}
@@ -276,12 +274,10 @@ export function DeliveriesPage() {
         <Card>
           <CardContent className="py-12 text-center space-y-3">
             <p className="text-muted-foreground">Nuk ka dërgime për sot.</p>
-            {!isAdmin && (
-              <Button onClick={openCreate} variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Krijo dërgimin e parë
-              </Button>
-            )}
+            <Button onClick={openCreate} variant="outline" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Krijo dërgimin e parë
+            </Button>
           </CardContent>
         </Card>
       ) : (
