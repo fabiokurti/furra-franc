@@ -109,7 +109,7 @@ export function ClientDetailPage() {
           {client.address && <p className="text-sm mt-1">{client.address}</p>}
           {client.phone && <p className="text-sm">{client.phone}</p>}
           <p className="text-sm mt-2 text-gray-500">
-            Fatura — {new Date().toLocaleDateString('sq-AL')}
+            Fatura — {formatDateAL(new Date())}
           </p>
         </div>
 

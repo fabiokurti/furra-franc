@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import api from '@/lib/api';
+import { formatDateAL, formatDateTimeAL } from '@/lib/date';
 import type { Order, OrderStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -142,7 +143,7 @@ export function OrdersPage() {
                   </div>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     {order.items.length} artikuj · nga {order.createdBy?.name} ·{' '}
-                    {new Date(order.createdAt).toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {formatDateAL(order.createdAt)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
@@ -169,7 +170,7 @@ export function OrdersPage() {
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
                 <p>Nga: {selectedOrder.createdBy?.name}</p>
-                <p>Data: {new Date(selectedOrder.createdAt).toLocaleString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                <p>Data: {formatDateTimeAL(selectedOrder.createdAt)}</p>
                 {selectedOrder.notes && <p>Shënime: {selectedOrder.notes}</p>}
               </div>
 

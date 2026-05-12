@@ -3,6 +3,7 @@ import { Trash2, Store } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/api';
+import { formatDateAL, formatDateTimeAL } from '@/lib/date';
 import type { ShopSale } from '@/types';
 
 export function BusinessSalesPage() {
@@ -29,7 +30,7 @@ export function BusinessSalesPage() {
 
   // group by date string (YYYY-MM-DD)
   const grouped = sales.reduce<Record<string, ShopSale[]>>((acc, sale) => {
-    const day = new Date(sale.saleDate).toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const day = formatDateAL(sale.saleDate, true);
     (acc[day] ??= []).push(sale);
     return acc;
   }, {});
@@ -83,7 +84,8 @@ export function BusinessSalesPage() {
                 {daySales.map((sale) => {
                   const total = sale.items.reduce((s, i) => s + i.quantity * Number(i.unitPrice), 0);
                   const userName = sale.user.client?.name ?? sale.user.name;
-                  const time = new Date(sale.saleDate).toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' });
+                  const dt = formatDateTimeAL(sale.saleDate);
+                  const time = dt.split(' ')[1];
                   return (
                     <div key={sale.id} className="flex items-center justify-between rounded-md border px-3 py-2.5 gap-3">
                       <div className="flex-1 min-w-0">

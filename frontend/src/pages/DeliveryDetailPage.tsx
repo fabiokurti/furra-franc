@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
+import { formatDateAL } from '@/lib/date';
 import type { Delivery } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -169,9 +170,7 @@ export function DeliveryDetailPage() {
               <CalendarDays className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground">Data:</span>
               <span className="font-medium">
-                {new Date(delivery.deliveryDate).toLocaleDateString('sq-AL', {
-                  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-                })}
+                {formatDateAL(delivery.deliveryDate, true)}
               </span>
             </p>
             {delivery.notes && (

@@ -12,12 +12,14 @@ import api from '@/lib/api';
 import type { Delivery, Client, ClientProductPrice, Product, User as UserType, DailyStock } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
+import { todayLocalISO, formatDateAL } from '@/lib/date';
+
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalISO();
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return formatDateAL(d, true);
 }
 
 const statusConfig = {
@@ -342,47 +344,49 @@ export function DeliveriesPage() {
                       {delivery.totalPrice !== undefined && (
                         <span className="text-lg font-bold text-primary">{delivery.totalPrice.toFixed(0)} L</span>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1.5"
-                        onClick={() => navigate(`/deliveries/${delivery.id}`)}
-                      >
-                        Detajet <ChevronRight className="h-3.5 w-3.5" />
-                      </Button>
-                      {delivery.status === 'PENDING' && (
-                        <>
-                          <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700"
-                            onClick={() => markStatus(delivery.id, 'COMPLETED')} disabled={isUpdating}>
-                            {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                            Shëno si kryer
-                          </Button>
-                          <Button size="sm" variant="outline"
-                            className="gap-2 text-destructive border-destructive hover:bg-destructive/10"
-                            onClick={() => markStatus(delivery.id, 'CANCELLED')} disabled={isUpdating}>
-                            <XCircle className="h-4 w-4" />Anulo
-                          </Button>
-                        </>
-                      )}
-                      {delivery.status === 'COMPLETED' && (
+                      <div className="flex flex-wrap gap-2 justify-end">
                         <Button
                           size="sm"
-                          variant={delivery.isPaid ? 'outline' : 'default'}
-                          className={`gap-1.5 ${delivery.isPaid ? '' : 'bg-green-600 hover:bg-green-700'}`}
-                          onClick={() => togglePaid(delivery.id)}
-                          disabled={isUpdating}
+                          variant="outline"
+                          className="gap-1.5"
+                          onClick={() => navigate(`/deliveries/${delivery.id}`)}
                         >
-                          <Banknote className="h-3.5 w-3.5" />
-                          {delivery.isPaid ? 'Pa paguar' : 'Paguar'}
+                          Detajet <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
-                      )}
-                      {isAdmin && (
-                        <Button size="sm" variant="ghost"
-                          className="text-destructive hover:text-destructive gap-2"
-                          onClick={() => handleDelete(delivery.id)}>
-                          <Trash2 className="h-3.5 w-3.5" />Fshi
-                        </Button>
-                      )}
+                        {delivery.status === 'PENDING' && (
+                          <>
+                            <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700"
+                              onClick={() => markStatus(delivery.id, 'COMPLETED')} disabled={isUpdating}>
+                              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                              Shëno si kryer
+                            </Button>
+                            <Button size="sm" variant="outline"
+                              className="gap-2 text-destructive border-destructive hover:bg-destructive/10"
+                              onClick={() => markStatus(delivery.id, 'CANCELLED')} disabled={isUpdating}>
+                              <XCircle className="h-4 w-4" />Anulo
+                            </Button>
+                          </>
+                        )}
+                        {delivery.status === 'COMPLETED' && (
+                          <Button
+                            size="sm"
+                            variant={delivery.isPaid ? 'outline' : 'default'}
+                            className={`gap-1.5 ${delivery.isPaid ? '' : 'bg-green-600 hover:bg-green-700'}`}
+                            onClick={() => togglePaid(delivery.id)}
+                            disabled={isUpdating}
+                          >
+                            <Banknote className="h-3.5 w-3.5" />
+                            {delivery.isPaid ? 'Pa paguar' : 'Paguar'}
+                          </Button>
+                        )}
+                        {isAdmin && (
+                          <Button size="sm" variant="ghost"
+                            className="text-destructive hover:text-destructive gap-2"
+                            onClick={() => handleDelete(delivery.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />Fshi
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

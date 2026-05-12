@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import api from '@/lib/api';
+import { formatDateAL, formatDateTimeAL } from '@/lib/date';
 import type { ShopProduct, ShopSale, Delivery, DeliveryStatus } from '@/types';
 
 interface SaleItem { shopProductId: string; name: string; quantity: number; unitPrice: number }
@@ -130,7 +131,7 @@ export function ShopPage() {
     await load();
   }
 
-  const today = new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' });
+  const today = formatDateAL(new Date(), true);
   const totalToday = sales.reduce((s, sale) => s + sale.items.reduce((si, i) => si + i.quantity * Number(i.unitPrice), 0), 0);
   const completedDeliveries = deliveries.filter((d) => d.status === 'COMPLETED');
   const totalDelivered = completedDeliveries.reduce((s, d) => s + d.items.reduce((si, i) => si + i.quantity, 0), 0);
@@ -190,7 +191,7 @@ export function ShopPage() {
                 <div key={delivery.id} className="rounded-md border px-3 py-2.5">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-muted-foreground">
-                      {delivery.createdBy.name} · {new Date(delivery.deliveryDate).toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' })}
+                      {delivery.createdBy.name} · {formatDateTimeAL(delivery.deliveryDate).split(' ')[1]}
                     </span>
                     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${statusClass[delivery.status]}`}>
                       {statusLabel[delivery.status]}

@@ -11,11 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import type { DashboardStats, DashboardDelivery, DailyStock, Client } from '@/types';
+import { todayLocalISO } from '@/lib/date';
 
 interface StaffUser { id: string; name: string; email: string; role: string; }
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalISO();
 }
 
 export function DashboardPage() {
