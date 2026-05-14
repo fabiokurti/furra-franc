@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Search, Truck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -102,6 +102,11 @@ export function ProductsPage() {
     }
   };
 
+  const toggleDelivery = async (product: Product) => {
+    await api.patch(`/products/${product.id}`, { showInDelivery: !product.showInDelivery });
+    setProducts((prev) => prev.map((p) => p.id === product.id ? { ...p, showInDelivery: !product.showInDelivery } : p));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -158,6 +163,15 @@ export function ProductsPage() {
                     <p className="text-xs text-muted-foreground">{product.stock} në stok</p>
                   </div>
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 ${product.showInDelivery ? 'text-primary' : 'text-muted-foreground'}`}
+                      title={product.showInDelivery ? 'Hiq nga dërgimi' : 'Shto në dërgim'}
+                      onClick={() => toggleDelivery(product)}
+                    >
+                      <Truck className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(product)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>

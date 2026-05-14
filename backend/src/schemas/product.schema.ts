@@ -9,7 +9,9 @@ export const createProductSchema = z.object({
   imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
 
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = createProductSchema.partial().extend({
+  showInDelivery: z.boolean().optional(),
+});
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;

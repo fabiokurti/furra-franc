@@ -188,8 +188,9 @@ export function DeliveriesPage() {
   const CAT_ORDER_LEFT  = ['Pani', 'Vogel', 'Bukë'];
   const CAT_ORDER_RIGHT = ['Bukë e Madhe', 'Byrek'];
   const catIdx = (cat: string, order: string[]) => { const i = order.indexOf(cat); return i === -1 ? 99 : i; };
-  const sortedLeft  = [...products].filter(p => !RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_LEFT)  - catIdx(b.category, CAT_ORDER_LEFT)  || a.name.localeCompare(b.name));
-  const sortedRight = [...products].filter(p =>  RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_RIGHT) - catIdx(b.category, CAT_ORDER_RIGHT) || a.name.localeCompare(b.name));
+  const deliveryProducts = products.filter(p => p.showInDelivery);
+  const sortedLeft  = deliveryProducts.filter(p => !RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_LEFT)  - catIdx(b.category, CAT_ORDER_LEFT)  || a.name.localeCompare(b.name));
+  const sortedRight = deliveryProducts.filter(p =>  RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_RIGHT) - catIdx(b.category, CAT_ORDER_RIGHT) || a.name.localeCompare(b.name));
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;

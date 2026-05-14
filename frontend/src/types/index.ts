@@ -19,6 +19,7 @@ export interface Product {
   category: string;
   imageUrl?: string;
   isActive: boolean;
+  showInDelivery: boolean;
   createdAt: string;
   updatedAt: string;
 }
