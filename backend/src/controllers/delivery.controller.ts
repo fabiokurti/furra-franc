@@ -23,11 +23,14 @@ export async function getDeliveries(req: Request, res: Response): Promise<void> 
 
   const where: Record<string, unknown> = {};
 
-  // Skip date filter when fetching full history for a client or staff
-  if (!clientId && !staffId) {
-    where.deliveryDate = getDayRange(date);
-  } else if (date && date !== 'all') {
-    where.deliveryDate = getDayRange(date);
+  // Skip date filter when 'all' is requested by admin, or when fetching full history for a client/staff
+  const skipDate = date === 'all' && isAdmin;
+  if (!skipDate) {
+    if (!clientId && !staffId) {
+      where.deliveryDate = getDayRange(date);
+    } else if (date && date !== 'all') {
+      where.deliveryDate = getDayRange(date);
+    }
   }
 
   if (isAdmin && clientId) {

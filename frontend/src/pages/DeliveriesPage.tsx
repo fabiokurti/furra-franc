@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays } from 'lucide-react';
+import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -171,18 +171,10 @@ export function DeliveriesPage() {
     (dailyStock?.items ?? []).map((i) => [i.productId, i.remaining])
   );
   const hasDailyStock = dailyStock !== null;
-  const dialogProducts = hasDailyStock
-    ? products.filter((p) => stockItemMap[p.id] !== undefined)
-    : products.filter((p) => p.isActive);
 
-  const EXCLUDED_DELIVERY_CATEGORIES = ['Tortë', 'Ëmbëlsirë', 'Pastë'];
-  const productsByCategory = dialogProducts
-    .filter((p) => !EXCLUDED_DELIVERY_CATEGORIES.includes(p.category))
-    .reduce<Record<string, Product[]>>((acc, p) => {
-      if (!acc[p.category]) acc[p.category] = [];
-      acc[p.category].push(p);
-      return acc;
-    }, {});
+  const LEFT_COLUMN  = ['Panine', 'Vogel Tregu', 'Vogel Fshati', 'Vogel Zeze', 'Vogel Integrale', 'Bageti', 'Thekrore', 'Veroll', 'Topa', 'Kulure 2 cope', 'Mistri'];
+  const RIGHT_COLUMN = ['Madhe Tregu', 'Madhe Fshati', 'Madhe Integrale', 'Byrek'];
+  const getByName = (name: string) => products.find((p) => p.name === name) ?? null;
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -231,6 +223,12 @@ export function DeliveriesPage() {
       {/* Admin filters */}
       {isAdmin && (
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
+            <Label className="shrink-0 text-sm">Data:</Label>
+            <Input type="date" value={dateFilter === 'all' ? '' : dateFilter} onChange={(e) => setDateFilter(e.target.value || today)} className="h-8 w-36 text-sm" />
+            <Button size="sm" variant={dateFilter === today ? 'default' : 'outline'} className="h-8 text-xs" onClick={() => setDateFilter(today)}>Sot</Button>
+            <Button size="sm" variant={dateFilter === 'all' ? 'default' : 'outline'} className="h-8 text-xs" onClick={() => setDateFilter('all')}>Të gjitha</Button>
+          </div>
           {staffUsers.length > 0 && (
             <div className="flex items-center gap-2">
               <Label className="shrink-0 text-sm">Stafi:</Label>
@@ -427,9 +425,9 @@ export function DeliveriesPage() {
               </Select>
             </div>
 
-            {/* 2. Product buttons grouped by category */}
+            {/* 2. Product buttons — fixed 2-column layout */}
             {selectedClientId && (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <Label className="text-sm font-semibold">
                   Produktet
                   {selectedItems.length > 0 && (
@@ -439,84 +437,113 @@ export function DeliveriesPage() {
                   )}
                 </Label>
 
-                {Object.entries(productsByCategory).map(([category, catProducts]) => (
-                  <div key={category}>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                      {category}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {catProducts.map((product) => {
-                        const selected = isSelected(product.id);
-                        const price = getPriceForProduct(product.id);
-                        const item = selectedItems.find((i) => i.productId === product.id);
-                        const remaining = stockItemMap[product.id] ?? null;
-                        const noStock = remaining !== null && remaining <= 0;
-
-                        return (
-                          <div key={product.id}>
-                            {/* Toggle button */}
-                            <button
-                              type="button"
-                              onClick={() => !noStock && toggleProduct(product.id)}
-                              disabled={noStock}
-                              className={`w-full rounded-lg border-2 px-3 py-2.5 text-left transition-all ${
-                                noStock
-                                  ? 'border-border bg-muted opacity-50 cursor-not-allowed'
-                                  : selected
-                                  ? 'border-primary bg-primary/10 text-primary'
-                                  : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
-                              }`}
-                            >
-                              <p className="text-sm font-semibold leading-tight">{product.name}</p>
-                              <div className="flex items-center justify-between mt-0.5">
-                                <p className="text-xs font-medium opacity-80">{price} L</p>
-                                {remaining !== null && (
-                                  <p className={`text-xs font-semibold ${remaining <= 0 ? 'text-red-500' : 'text-green-600'}`}>
-                                    {remaining} mbetur
-                                  </p>
-                                )}
+                <div className="grid grid-cols-2 gap-x-3 gap-y-0 items-start">
+                  {/* Left column */}
+                  <div className="space-y-1.5">
+                    {LEFT_COLUMN.map((name) => {
+                      const product = getByName(name);
+                      if (!product) return null;
+                      const selected = isSelected(product.id);
+                      const price = getPriceForProduct(product.id);
+                      const item = selectedItems.find((i) => i.productId === product.id);
+                      const remaining = stockItemMap[product.id] ?? null;
+                      const noStock = hasDailyStock && (remaining === null || remaining <= 0);
+                      return (
+                        <div key={product.id}>
+                          <button
+                            type="button"
+                            onClick={() => !noStock && toggleProduct(product.id)}
+                            disabled={noStock}
+                            className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
+                              noStock
+                                ? 'border-border bg-muted opacity-50 cursor-not-allowed'
+                                : selected
+                                ? 'border-primary bg-primary/10 text-primary'
+                                : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
+                            }`}
+                          >
+                            <p className="text-sm font-semibold leading-tight">{product.name}</p>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <p className="text-xs font-medium opacity-80">{price} L</p>
+                              {remaining !== null && (
+                                <p className={`text-xs font-semibold ${remaining <= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                  {remaining}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                          {selected && item && (
+                            <div className="flex items-center justify-between mt-1 px-1">
+                              <span className="text-xs text-muted-foreground">Sasia:</span>
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.quantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
+                                <button type="button" onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Plus className="h-3 w-3" />
+                                </button>
                               </div>
-                            </button>
-
-                            {/* Quantity row — only when selected */}
-                            {selected && item && (
-                              <div className="flex items-center justify-between mt-1.5 px-1">
-                                <span className="text-xs text-muted-foreground">Sasia:</span>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))}
-                                    className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent"
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </button>
-                                  <Input
-                                    type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={item.quantity ?? ''}
-                                    onChange={(e) => {
-                                      const raw = e.target.value.replace(/\D/g, '');
-                                      setQty(product.id, raw === '' ? null : parseInt(raw));
-                                    }}
-                                    className="h-6 w-12 text-center text-xs px-1"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)}
-                                    className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+
+                  {/* Right column */}
+                  <div className="space-y-1.5">
+                    {RIGHT_COLUMN.map((name) => {
+                      const product = getByName(name);
+                      if (!product) return null;
+                      const selected = isSelected(product.id);
+                      const price = getPriceForProduct(product.id);
+                      const item = selectedItems.find((i) => i.productId === product.id);
+                      const remaining = stockItemMap[product.id] ?? null;
+                      const noStock = hasDailyStock && (remaining === null || remaining <= 0);
+                      return (
+                        <div key={product.id}>
+                          <button
+                            type="button"
+                            onClick={() => !noStock && toggleProduct(product.id)}
+                            disabled={noStock}
+                            className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
+                              noStock
+                                ? 'border-border bg-muted opacity-50 cursor-not-allowed'
+                                : selected
+                                ? 'border-primary bg-primary/10 text-primary'
+                                : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
+                            }`}
+                          >
+                            <p className="text-sm font-semibold leading-tight">{product.name}</p>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <p className="text-xs font-medium opacity-80">{price} L</p>
+                              {remaining !== null && (
+                                <p className={`text-xs font-semibold ${remaining <= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                  {remaining}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                          {selected && item && (
+                            <div className="flex items-center justify-between mt-1 px-1">
+                              <span className="text-xs text-muted-foreground">Sasia:</span>
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.quantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
+                                <button type="button" onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
