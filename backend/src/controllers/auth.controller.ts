@@ -80,7 +80,7 @@ export async function getStaffUsers(_req: Request, res: Response): Promise<void>
 
 export async function updateStaff(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
-  const { name, email } = req.body as { name?: string; email?: string };
+  const { name, email, password } = req.body as { name?: string; email?: string; password?: string };
 
   const staff = await prisma.user.findFirst({ where: { id, role: 'STAFF' } });
   if (!staff) {
@@ -101,6 +101,7 @@ export async function updateStaff(req: Request, res: Response): Promise<void> {
     data: {
       ...(name?.trim() && { name: name.trim() }),
       ...(email?.trim() && { email: email.trim() }),
+      ...(password?.trim() && { passwordHash: await bcrypt.hash(password.trim(), 10) }),
     },
     select: { id: true, name: true, email: true, role: true },
   });
@@ -130,6 +131,25 @@ export async function createStaff(req: Request, res: Response): Promise<void> {
   });
 
   res.status(201).json({ user });
+}
+
+export async function deleteStaff(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+
+  const staff = await prisma.user.findFirst({ where: { id, role: 'STAFF' } });
+  if (!staff) {
+    res.status(404).json({ message: 'Shpërndarësi nuk u gjet' });
+    return;
+  }
+
+  const clientCount = await prisma.client.count({ where: { staffId: id } });
+  if (clientCount > 0) {
+    res.status(400).json({ message: `Shpërndarësi ka ${clientCount} klientë. Lëvizini klientët te stafi tjetër para fshirjes.` });
+    return;
+  }
+
+  await prisma.user.delete({ where: { id } });
+  res.status(204).send();
 }
 
 export async function createBusinessUser(req: Request, res: Response): Promise<void> {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus, Search, History } from 'lucide-react';
+import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus, Search, History, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -34,6 +34,7 @@ export function StaffPage() {
   const [editingStaff, setEditingStaff] = useState<StaffWithClients | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [editPassword, setEditPassword] = useState('');
   const [editError, setEditError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [newClientName, setNewClientName] = useState('');
@@ -86,6 +87,7 @@ export function StaffPage() {
     setEditingStaff(staff);
     setEditName(staff.name);
     setEditEmail(staff.email);
+    setEditPassword('');
     setEditError('');
     setMoveMap({});
     setNewClientName('');
@@ -94,13 +96,27 @@ export function StaffPage() {
     setImportClientId('');
   }
 
+  async function handleDeleteStaff(staff: StaffWithClients) {
+    if (!confirm(`Fshi shpërndarësin "${staff.name}"? Ky veprim nuk mund të kthehets.`)) return;
+    try {
+      await api.delete(`/auth/staff/${staff.id}`);
+      await load();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Ndodhi një gabim');
+    }
+  }
+
   async function handleSaveEdit() {
     if (!editingStaff) return;
     setEditError('');
     setIsSaving(true);
     try {
-      if (editName !== editingStaff.name || editEmail !== editingStaff.email) {
-        await api.patch(`/auth/staff/${editingStaff.id}`, { name: editName, email: editEmail });
+      if (editName !== editingStaff.name || editEmail !== editingStaff.email || editPassword.trim()) {
+        await api.patch(`/auth/staff/${editingStaff.id}`, {
+          name: editName,
+          email: editEmail,
+          ...(editPassword.trim() && { password: editPassword.trim() }),
+        });
       }
       for (const [clientId, toStaffId] of Object.entries(moveMap)) {
         if (toStaffId) await api.patch(`/clients/${clientId}`, { staffId: toStaffId });
@@ -203,6 +219,9 @@ export function StaffPage() {
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(staff)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleDeleteStaff(staff)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -303,6 +322,10 @@ export function StaffPage() {
               <div className="space-y-1">
                 <Label>Email</Label>
                 <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Fjalëkalim i ri (opsional)</Label>
+                <Input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="Lër bosh për të mos ndryshuar" />
               </div>
             </div>
 
