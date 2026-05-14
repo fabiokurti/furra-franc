@@ -235,44 +235,62 @@ export function DeliveriesPage() {
       {/* Admin filters */}
       {isAdmin && (
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3">
+          {/* Date row — date input stretches on mobile */}
           <div className="flex items-center gap-2">
             <Label className="shrink-0 text-sm flex items-center gap-1">
-              <CalendarDays className="h-3.5 w-3.5" />Data:
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Data:</span>
             </Label>
-            <Input type="date" value={dateFilter === 'all' ? '' : dateFilter} onChange={(e) => setDateFilter(e.target.value || today)} className="h-8 w-36 text-sm" />
-            <Button size="sm" variant={dateFilter === today ? 'default' : 'outline'} className="h-8 text-xs" onClick={() => setDateFilter(today)}>Sot</Button>
-            <Button size="sm" variant={dateFilter === 'all' ? 'default' : 'outline'} className="h-8 text-xs" onClick={() => setDateFilter('all')}>Të gjitha</Button>
+            <Input type="date" value={dateFilter === 'all' ? '' : dateFilter} onChange={(e) => setDateFilter(e.target.value || today)} className="h-8 flex-1 sm:flex-none sm:w-36 text-sm" />
+            <Button size="sm" variant={dateFilter === today ? 'default' : 'outline'} className="h-8 text-xs px-2 sm:px-3 shrink-0" onClick={() => setDateFilter(today)}>Sot</Button>
+            <Button size="sm" variant={dateFilter === 'all' ? 'default' : 'outline'} className="h-8 text-xs px-2 sm:px-3 shrink-0" onClick={() => setDateFilter('all')}>
+              <span className="sm:hidden">Gjitha</span>
+              <span className="hidden sm:inline">Të gjitha</span>
+            </Button>
           </div>
+          {/* Staff + client — 2-col grid on mobile, inline on desktop */}
           {staffUsers.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:contents">
+              <div className="flex items-center gap-2">
+                <Label className="shrink-0 text-sm hidden sm:block">Stafi:</Label>
+                <Select value={staffFilter} onValueChange={setStaffFilter}>
+                  <SelectTrigger className="h-8 w-full sm:w-44 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Të gjithë</SelectItem>
+                    {staffUsers.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="shrink-0 text-sm hidden sm:block">Klienti:</Label>
+                <Select value={clientFilter} onValueChange={setClientFilter}>
+                  <SelectTrigger className="h-8 w-full sm:w-44 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Të gjithë</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          {staffUsers.length === 0 && (
             <div className="flex items-center gap-2">
-              <Label className="shrink-0 text-sm">Stafi:</Label>
-              <Select value={staffFilter} onValueChange={setStaffFilter}>
-                <SelectTrigger className="w-full sm:w-44">
-                  <SelectValue />
-                </SelectTrigger>
+              <Label className="shrink-0 text-sm hidden sm:block">Klienti:</Label>
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="h-8 w-full sm:w-44 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Të gjithë</SelectItem>
-                  {staffUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
-          <div className="flex items-center gap-2">
-            <Label className="shrink-0 text-sm">Klienti:</Label>
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Të gjithë</SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       )}
 
