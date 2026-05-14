@@ -209,7 +209,7 @@ export function DeliveriesPage() {
       </div>
 
       {/* Summary */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
         <div className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm">
           <Clock className="h-4 w-4 text-yellow-500" />
           <span className="font-semibold">{pendingCount}</span>
@@ -368,19 +368,20 @@ export function DeliveriesPage() {
                           className="gap-1.5"
                           onClick={() => openEdit(delivery)}
                         >
-                          <Pencil className="h-3.5 w-3.5" />Ndrysho
+                          <Pencil className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Ndrysho</span>
                         </Button>
                         {delivery.status === 'PENDING' && (
                           <>
-                            <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700"
+                            <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700"
                               onClick={() => markStatus(delivery.id, 'COMPLETED')} disabled={isUpdating}>
-                              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                              Shëno si kryer
+                              {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                              <span className="hidden sm:inline">Shëno si </span>Kryer
                             </Button>
                             <Button size="sm" variant="outline"
-                              className="gap-2 text-destructive border-destructive hover:bg-destructive/10"
+                              className="gap-1.5 text-destructive border-destructive hover:bg-destructive/10"
                               onClick={() => markStatus(delivery.id, 'CANCELLED')} disabled={isUpdating}>
-                              <XCircle className="h-4 w-4" />Anulo
+                              <XCircle className="h-3.5 w-3.5" />Anulo
                             </Button>
                           </>
                         )}
@@ -398,9 +399,10 @@ export function DeliveriesPage() {
                         )}
                         {isAdmin && (
                           <Button size="sm" variant="ghost"
-                            className="text-destructive hover:text-destructive gap-2"
+                            className="text-destructive hover:text-destructive gap-1.5"
                             onClick={() => handleDelete(delivery.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />Fshi
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Fshi</span>
                           </Button>
                         )}
                       </div>

@@ -211,7 +211,7 @@ export function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Klientët</h1>
           <p className="text-muted-foreground">
@@ -219,7 +219,7 @@ export function ClientsPage() {
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={openCreate} className="gap-2">
+          <Button onClick={openCreate} className="gap-2 shrink-0">
             <Plus className="h-4 w-4" />
             Shto klient
           </Button>

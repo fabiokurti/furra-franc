@@ -115,32 +115,32 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Card>
-          <CardContent className="pt-5 pb-4">
+          <CardContent className="pt-4 pb-3 md:pt-5 md:pb-4">
             <p className="text-xs text-muted-foreground font-medium">Dërgime të kryera</p>
-            <p className="text-2xl font-bold mt-1">{totalDeliveries}</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1">{totalDeliveries}</p>
             <p className="text-xs text-muted-foreground mt-1">Për datën e zgjedhur</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-5 pb-4">
+          <CardContent className="pt-4 pb-3 md:pt-5 md:pb-4">
             <p className="text-xs text-muted-foreground font-medium">Shuma totale</p>
-            <p className="text-2xl font-bold mt-1">{totalAmount.toFixed(0)} L</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1">{totalAmount.toFixed(0)} L</p>
             <p className="text-xs text-muted-foreground mt-1">Të gjitha dërgimet</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-5 pb-4">
+          <CardContent className="pt-4 pb-3 md:pt-5 md:pb-4">
             <p className="text-xs text-muted-foreground font-medium">Paguar</p>
-            <p className="text-2xl font-bold mt-1 text-green-600">{paidTotal.toFixed(0)} L</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1 text-green-600">{paidTotal.toFixed(0)} L</p>
             <p className="text-xs text-muted-foreground mt-1">{paidCount} dërgime</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-5 pb-4">
+          <CardContent className="pt-4 pb-3 md:pt-5 md:pb-4">
             <p className="text-xs text-muted-foreground font-medium">Pa paguar</p>
-            <p className="text-2xl font-bold mt-1 text-destructive">{unpaidTotal.toFixed(0)} L</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1 text-destructive">{unpaidTotal.toFixed(0)} L</p>
             <p className="text-xs text-muted-foreground mt-1">{unpaidCount} dërgime</p>
           </CardContent>
         </Card>
@@ -317,7 +317,7 @@ export function DashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <span className="text-sm font-bold text-primary">{delivery.totalPrice.toFixed(0)} L</span>
                     <Button
                       size="sm"
@@ -328,7 +328,8 @@ export function DashboardPage() {
                     >
                       {togglingId === delivery.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                       <Banknote className="mr-1.5 h-3.5 w-3.5" />
-                      {delivery.isPaid ? 'Shëno pa paguar' : 'Shëno paguar'}
+                      <span className="hidden sm:inline">{delivery.isPaid ? 'Shëno pa paguar' : 'Shëno paguar'}</span>
+                      <span className="sm:hidden">{delivery.isPaid ? 'Pa paguar' : 'Paguar'}</span>
                     </Button>
                   </div>
                 </div>

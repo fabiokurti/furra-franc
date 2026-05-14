@@ -40,7 +40,7 @@ function ProductForm({
             <CardTitle className="text-base">{category}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
               {prods.map((p) => (
                 <div key={p.id} className="space-y-1">
                   <label className="text-sm font-medium">{p.name}</label>
