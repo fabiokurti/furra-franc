@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,6 +46,7 @@ export function DeliveriesPage() {
   const [serverError, setServerError] = useState('');
   const [staffFilter, setStaffFilter] = useState('ALL');
   const [clientFilter, setClientFilter] = useState('ALL');
+  const [dateFilter, setDateFilter]   = useState(todayISO());
   const [updatingId, setUpdatingId]   = useState<string | null>(null);
   const [dailyStock, setDailyStock]   = useState<DailyStock | null>(null);
 
@@ -60,7 +61,7 @@ export function DeliveriesPage() {
   // ── data fetching ──────────────────────────────────────────────
   const fetchDeliveries = () => {
     setIsLoading(true);
-    const params: Record<string, string> = { date: today };
+    const params: Record<string, string> = { date: isAdmin ? dateFilter : today };
     if (isAdmin && staffFilter !== 'ALL') params.staffId = staffFilter;
     if (isAdmin && clientFilter !== 'ALL') params.clientId = clientFilter;
     api.get('/deliveries', { params })
@@ -69,7 +70,7 @@ export function DeliveriesPage() {
       .finally(() => setIsLoading(false));
   };
 
-  useEffect(() => { fetchDeliveries(); }, [staffFilter, clientFilter]);
+  useEffect(() => { fetchDeliveries(); }, [staffFilter, clientFilter, dateFilter]);
 
   useEffect(() => {
     api.get('/clients').then((res) => setClients(res.data.clients));

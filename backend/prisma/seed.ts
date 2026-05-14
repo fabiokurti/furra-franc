@@ -78,27 +78,27 @@ async function main() {
   console.log('🥖 Creating products...');
 
   const products = [
-    // Miell
-    { id: 'p-m-tregu',   name: 'M.TREGU',   description: 'Miell Tregu',         category: 'Miell',   price: 120, stock: 500 },
-    { id: 'p-m-fshati',  name: 'M.FSHATI',  description: 'Miell Fshati',        category: 'Miell',   price: 120, stock: 500 },
-    { id: 'p-m-inte',    name: 'M.INTE',    description: 'Miell Integral',      category: 'Miell',   price: 120, stock: 500 },
-    // Bukë e madhe
-    { id: 'p-topa',      name: 'TOPA',      description: 'Bukë Topë',           category: 'Bukë',    price: 70,  stock: 300 },
-    { id: 'p-thekre',    name: 'THEKRE',    description: 'Bukë Thekre',         category: 'Bukë',    price: 70,  stock: 300 },
-    { id: 'p-verdhe',    name: 'VERDHE',    description: 'Bukë Verdhe',         category: 'Bukë',    price: 70,  stock: 300 },
-    { id: 'p-kulure',    name: 'KULURE',    description: 'Kulurë',              category: 'Bukë',    price: 70,  stock: 300 },
-    { id: 'p-mistri',    name: 'MISTRI',    description: 'Bukë Mistri',         category: 'Bukë',    price: 70,  stock: 300 },
-    { id: 'p-bagtti',    name: 'BAGTTI',    description: 'Baggetti',            category: 'Bukë',    price: 70,  stock: 300 },
-    // Vekë
-    { id: 'p-v-inte',    name: 'V.INTE',    description: 'Vekë Integrale',      category: 'Vekë',    price: 60,  stock: 300 },
-    { id: 'p-v-tregu',   name: 'V.TREGU',   description: 'Vekë Tregu',         category: 'Vekë',    price: 60,  stock: 300 },
-    { id: 'p-v-zeze',    name: 'V.ZEZE',    description: 'Vekë e Zezë',        category: 'Vekë',    price: 60,  stock: 300 },
-    { id: 'p-v-fshati',  name: 'V.FSHATI',  description: 'Vekë Fshati',        category: 'Vekë',    price: 60,  stock: 300 },
+    // Bukë e Madhe
+    { id: 'p-m-tregu',   name: 'Madhe Tregu',     description: 'Bukë e Madhe Tregu',    category: 'Bukë e Madhe', price: 100, stock: 500 },
+    { id: 'p-m-fshati',  name: 'Madhe Fshati',    description: 'Bukë e Madhe Fshati',   category: 'Bukë e Madhe', price: 120, stock: 500 },
+    { id: 'p-m-inte',    name: 'Madhe Integrale', description: 'Bukë e Madhe Integrale',category: 'Bukë e Madhe', price: 120, stock: 500 },
+    // Bukë
+    { id: 'p-topa',      name: 'Topa',            description: 'Bukë Topë',             category: 'Bukë',         price: 70,  stock: 300 },
+    { id: 'p-thekre',    name: 'Thekrore',        description: 'Bukë Thekrore',         category: 'Bukë',         price: 70,  stock: 300 },
+    { id: 'p-verdhe',    name: 'Veroll',          description: 'Bukë Veroll',           category: 'Bukë',         price: 70,  stock: 300 },
+    { id: 'p-kulure',    name: 'Kulure 2 cope',   description: 'Kulurë 2 cope',         category: 'Bukë',         price: 70,  stock: 300 },
+    { id: 'p-mistri',    name: 'Mistri',          description: 'Bukë Mistri',           category: 'Bukë',         price: 70,  stock: 300 },
+    { id: 'p-bagtti',    name: 'Bageti',          description: 'Baggetti',              category: 'Bukë',         price: 60,  stock: 300 },
+    // Vogel
+    { id: 'p-v-inte',    name: 'Vogel Integrale', description: 'Vogel Integrale',       category: 'Vogel',        price: 60,  stock: 300 },
+    { id: 'p-v-tregu',   name: 'Vogel Tregu',     description: 'Vogel Tregu',           category: 'Vogel',        price: 60,  stock: 300 },
+    { id: 'p-v-zeze',    name: 'Vogel Zeze',      description: 'Vogel Zeze',            category: 'Vogel',        price: 60,  stock: 300 },
+    { id: 'p-v-fshati',  name: 'Vogel Fshati',    description: 'Vogel Fshati',          category: 'Vogel',        price: 60,  stock: 300 },
     // Pani
-    { id: 'p-pani-gj',   name: 'PANI.GJ',   description: 'Pani Gjysmë',        category: 'Pani',    price: 12,  stock: 500 },
-    { id: 'p-pani-rr',   name: 'PANI.RR',   description: 'Pani Rrotull',       category: 'Pani',    price: 12,  stock: 500 },
+    { id: 'p-pani-gj',   name: 'Panine',          description: 'Panine',                category: 'Pani',         price: 12,  stock: 500 },
+    { id: 'p-pani-rr',   name: 'Panine Rrotull',  description: 'Panine Rrotull',        category: 'Pani',         price: 12,  stock: 500 },
     // Byrek
-    { id: 'p-byrek',     name: 'BYREK',     description: 'Byrek',              category: 'Byrek',   price: 50,  stock: 200 },
+    { id: 'p-byrek',     name: 'Byrek',           description: 'Byrek',                 category: 'Byrek',        price: 50,  stock: 200 },
     // Tortë
     { id: 'p-torta-7',   name: 'TORTA.7',   description: 'Tortë Nr.7',         category: 'Tortë',   price: 700, stock: 20  },
     { id: 'p-torta-8',   name: 'TORTA.8',   description: 'Tortë Nr.8',         category: 'Tortë',   price: 800, stock: 20  },
