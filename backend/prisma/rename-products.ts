@@ -28,6 +28,7 @@ const renames: { oldName: string; newName: string; category: string; price?: num
   { oldName: 'VOGEL INTEGRALE', newName: 'Vogel Integrale', category: 'Vogel' },
   { oldName: 'VOGEL TREGU',     newName: 'Vogel Tregu',     category: 'Vogel' },
   { oldName: 'VOGEL ZEZE',      newName: 'Vogel Zeze',      category: 'Vogel' },
+  { oldName: 'VOGEL E ZEZE',    newName: 'Vogel Zeze',      category: 'Vogel' },
   { oldName: 'VOGEL FSHATI',    newName: 'Vogel Fshati',    category: 'Vogel' },
   { oldName: 'PANINE',          newName: 'Panine',          category: 'Pani' },
   { oldName: 'PANINE RROTULL',  newName: 'Panine Rrotull',  category: 'Pani' },
