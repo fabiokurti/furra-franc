@@ -183,10 +183,13 @@ export function DeliveriesPage() {
   );
   const hasDailyStock = dailyStock !== null;
 
-  const LEFT_COLUMN  = ['Panine', 'Vogel Tregu', 'Vogel Fshati', 'Vogel Zeze', 'Vogel Integrale', 'Bageti', 'Thekrore', 'Veroll', 'Topa', 'Kulure 2 cope', 'Mistri'];
-  const RIGHT_COLUMN = ['Madhe Tregu', 'Madhe Fshati', 'Madhe Integrale', 'Byrek'];
-  const norm = (s: string) => s.toLowerCase().trim();
-  const getByName = (name: string) => products.find((p) => norm(p.name) === norm(name)) ?? null;
+  // Dynamic 2-column split by category — left: small breads, right: large + byrek
+  const RIGHT_CATS = new Set(['Bukë e Madhe', 'Byrek']);
+  const CAT_ORDER_LEFT  = ['Pani', 'Vogel', 'Bukë'];
+  const CAT_ORDER_RIGHT = ['Bukë e Madhe', 'Byrek'];
+  const catIdx = (cat: string, order: string[]) => { const i = order.indexOf(cat); return i === -1 ? 99 : i; };
+  const sortedLeft  = [...products].filter(p => !RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_LEFT)  - catIdx(b.category, CAT_ORDER_LEFT)  || a.name.localeCompare(b.name));
+  const sortedRight = [...products].filter(p =>  RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_RIGHT) - catIdx(b.category, CAT_ORDER_RIGHT) || a.name.localeCompare(b.name));
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -480,11 +483,9 @@ export function DeliveriesPage() {
                   )}
                 </Label>
                 <div className="flex gap-3">
-                  {[LEFT_COLUMN, RIGHT_COLUMN].map((col, ci) => (
+                  {[sortedLeft, sortedRight].map((col, ci) => (
                     <div key={ci} className="flex-1 space-y-1.5">
-                      {col.map((name) => {
-                        const product = getByName(name);
-                        if (!product) return null;
+                      {col.map((product) => {
                         const selected = isSelected(product.id);
                         const price = getPriceForProduct(product.id);
                         const item = selectedItems.find((i) => i.productId === product.id);
