@@ -172,9 +172,9 @@ export function DeliveriesPage() {
   );
   const hasDailyStock = dailyStock !== null;
 
-  const LEFT_COLUMN  = ['Panine', 'Vogel Tregu', 'Vogel Fshati', 'Vogel Zeze', 'Vogel Integrale', 'Bageti', 'Thekrore', 'Veroll', 'Topa', 'Kulure 2 cope', 'Mistri'];
-  const RIGHT_COLUMN = ['Madhe Tregu', 'Madhe Fshati', 'Madhe Integrale', 'Byrek'];
-  const getByName = (name: string) => products.find((p) => p.name.toLowerCase() === name.toLowerCase()) ?? null;
+  const LEFT_COLUMN  = ['p-pani-gj', 'p-v-tregu', 'p-v-fshati', 'p-v-zeze', 'p-v-inte', 'p-bagtti', 'p-thekre', 'p-verdhe', 'p-topa', 'p-kulure', 'p-mistri'];
+  const RIGHT_COLUMN = ['p-m-tregu', 'p-m-fshati', 'p-m-inte', 'p-byrek'];
+  const getById = (id: string) => products.find((p) => p.id === id) ?? null;
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -441,7 +441,7 @@ export function DeliveriesPage() {
                   {[LEFT_COLUMN, RIGHT_COLUMN].map((col, ci) => (
                     <div key={ci} className="flex-1 space-y-1.5">
                       {col.map((name) => {
-                        const product = getByName(name);
+                        const product = getById(name);
                         if (!product) return null;
                         const selected = isSelected(product.id);
                         const price = getPriceForProduct(product.id);
