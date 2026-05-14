@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { createDeliverySchema, updateDeliveryStatusSchema } from '../schemas/delivery.schema';
+import { createDeliverySchema, updateDeliveryStatusSchema, updateDeliverySchema } from '../schemas/delivery.schema';
 
 function getDayRange(dateStr?: string): { gte: Date; lt: Date } {
   const base = dateStr ? new Date(dateStr) : new Date();
@@ -132,6 +132,39 @@ export async function createDelivery(req: Request, res: Response): Promise<void>
   });
 
   res.status(201).json({ delivery });
+}
+
+export async function updateDelivery(req: Request, res: Response): Promise<void> {
+  const result = updateDeliverySchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({ message: 'Gabim validimi', errors: result.error.flatten().fieldErrors });
+    return;
+  }
+
+  const delivery = await prisma.delivery.findUnique({ where: { id: req.params.id } });
+  if (!delivery) {
+    res.status(404).json({ message: 'Dërgimi nuk u gjet' });
+    return;
+  }
+
+  if (req.user!.role === 'STAFF' && delivery.staffId !== req.user!.userId) {
+    res.status(403).json({ message: 'Nuk keni akses në këtë dërgim' });
+    return;
+  }
+
+  const { notes, items } = result.data;
+
+  await prisma.deliveryItem.deleteMany({ where: { deliveryId: req.params.id } });
+  const updated = await prisma.delivery.update({
+    where: { id: req.params.id },
+    data: {
+      notes,
+      items: { create: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) },
+    },
+    include: deliveryInclude,
+  });
+
+  res.json({ delivery: updated });
 }
 
 export async function updateDeliveryStatus(req: Request, res: Response): Promise<void> {

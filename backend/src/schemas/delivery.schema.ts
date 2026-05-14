@@ -20,5 +20,17 @@ export const updateDeliveryStatusSchema = z.object({
   status: DeliveryStatusEnum,
 });
 
+export const updateDeliverySchema = z.object({
+  notes: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        quantity: z.number().int().positive('Sasia duhet të jetë pozitive'),
+      })
+    )
+    .min(1, 'Dërgimi duhet të ketë të paktën një artikull'),
+});
+
 export type CreateDeliveryInput = z.infer<typeof createDeliverySchema>;
 export type UpdateDeliveryStatusInput = z.infer<typeof updateDeliveryStatusSchema>;

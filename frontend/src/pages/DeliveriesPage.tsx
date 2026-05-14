@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays } from 'lucide-react';
+import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,6 +55,7 @@ export function DeliveriesPage() {
   const [notes, setNotes]                       = useState('');
   const [selectedItems, setSelectedItems]       = useState<SelectedItem[]>([]);
   const [isSubmitting, setIsSubmitting]         = useState(false);
+  const [editingDelivery, setEditingDelivery]   = useState<Delivery | null>(null);
 
   const today = todayISO();
 
@@ -94,9 +95,19 @@ export function DeliveriesPage() {
 
   // ── dialog helpers ─────────────────────────────────────────────
   const openCreate = () => {
+    setEditingDelivery(null);
     setSelectedClientId('');
     setNotes('');
     setSelectedItems([]);
+    setServerError('');
+    setDialogOpen(true);
+  };
+
+  const openEdit = (delivery: Delivery) => {
+    setEditingDelivery(delivery);
+    setSelectedClientId(delivery.clientId);
+    setNotes(delivery.notes || '');
+    setSelectedItems(delivery.items.map((i) => ({ productId: i.productId, quantity: i.quantity })));
     setServerError('');
     setDialogOpen(true);
   };
@@ -125,11 +136,11 @@ export function DeliveriesPage() {
     if (itemsToSend.length === 0) { setServerError('Zgjidhni të paktën një produkt me sasi > 0'); return; }
     setIsSubmitting(true);
     try {
-      await api.post('/deliveries', {
-        clientId: selectedClientId,
-        notes: notes || undefined,
-        items: itemsToSend,
-      });
+      if (editingDelivery) {
+        await api.patch(`/deliveries/${editingDelivery.id}`, { notes: notes || undefined, items: itemsToSend });
+      } else {
+        await api.post('/deliveries', { clientId: selectedClientId, notes: notes || undefined, items: itemsToSend });
+      }
       setDialogOpen(false);
       fetchDeliveries();
       api.get('/daily-stock/today').then((res) => setDailyStock(res.data.entry)).catch(() => {});
@@ -351,6 +362,14 @@ export function DeliveriesPage() {
                         >
                           Detajet <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5"
+                          onClick={() => openEdit(delivery)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />Ndrysho
+                        </Button>
                         {delivery.status === 'PENDING' && (
                           <>
                             <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700"
@@ -398,7 +417,7 @@ export function DeliveriesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg max-h-[92vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
-            <DialogTitle>Dërgim i ri</DialogTitle>
+            <DialogTitle>{editingDelivery ? `Ndrysho dërgimin — ${editingDelivery.client.name}` : 'Dërgim i ri'}</DialogTitle>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
@@ -411,22 +430,24 @@ export function DeliveriesPage() {
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{serverError}</div>
             )}
 
-            {/* 1. Client dropdown */}
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Klienti</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Zgjidhni klientin..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}{c.address ? ` — ${c.address}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* 1. Client dropdown (hidden when editing) */}
+            {!editingDelivery && (
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Klienti</Label>
+                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Zgjidhni klientin..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}{c.address ? ` — ${c.address}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* 2. Product buttons — fixed 2 columns */}
             <div className="space-y-2">
@@ -523,7 +544,7 @@ export function DeliveriesPage() {
               </Button>
               <Button onClick={onSubmit} disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Krijo dërgimin
+                {editingDelivery ? 'Ruaj ndryshimet' : 'Krijo dërgimin'}
               </Button>
             </DialogFooter>
           </div>
