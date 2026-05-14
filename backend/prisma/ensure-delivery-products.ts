@@ -1,8 +1,9 @@
 /**
  * ensure-delivery-products.ts
  *
- * Run this on the server after deploying to make sure all delivery products
- * exist with correct names, categories and showInDelivery = true.
+ * Does NOT rename or delete any existing products.
+ * Only creates missing canonical delivery products and sets showInDelivery = true
+ * on any that already exist (matched by name).
  *
  * Usage:
  *   cd /var/www/furra-franc/backend
@@ -12,88 +13,33 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Old name → canonical product mapping (for renaming existing records)
-const RENAMES: { oldName: string; canonicalName: string }[] = [
-  // original shortcodes
-  { oldName: 'M.TREGU',         canonicalName: 'Madhe Tregu' },
-  { oldName: 'M.FSHATI',        canonicalName: 'Madhe Fshati' },
-  { oldName: 'M.INTE',          canonicalName: 'Madhe Integrale' },
-  { oldName: 'TOPA',            canonicalName: 'Topa' },
-  { oldName: 'THEKRE',          canonicalName: 'Thekrore' },
-  { oldName: 'VERDHE',          canonicalName: 'Veroll' },
-  { oldName: 'KULURE',          canonicalName: 'Kulure 2 cope' },
-  { oldName: 'MISTRI',          canonicalName: 'Mistri' },
-  { oldName: 'BAGTTI',          canonicalName: 'Bageti' },
-  { oldName: 'V.INTE',          canonicalName: 'Vogel Integrale' },
-  { oldName: 'V.TREGU',         canonicalName: 'Vogel Tregu' },
-  { oldName: 'V.ZEZE',          canonicalName: 'Vogel Zeze' },
-  { oldName: 'V.FSHATI',        canonicalName: 'Vogel Fshati' },
-  { oldName: 'PANI.GJ',         canonicalName: 'Panine' },
-  { oldName: 'PANI.RR',         canonicalName: 'Panine Rrotull' },
-  { oldName: 'BYREK',           canonicalName: 'Byrek' },
-  // uppercase / alternative names from live DB
-  { oldName: 'MADHE TREGU',     canonicalName: 'Madhe Tregu' },
-  { oldName: 'MADHE FSHATI',    canonicalName: 'Madhe Fshati' },
-  { oldName: 'MADHE INTEGRALE', canonicalName: 'Madhe Integrale' },
-  { oldName: 'VOGEL INTEGRALE', canonicalName: 'Vogel Integrale' },
-  { oldName: 'VOGEL TREGU',     canonicalName: 'Vogel Tregu' },
-  { oldName: 'VOGEL ZEZE',      canonicalName: 'Vogel Zeze' },
-  { oldName: 'VOGEL E ZEZE',    canonicalName: 'Vogel Zeze' },
-  { oldName: 'VOGEL FSHATI',    canonicalName: 'Vogel Fshati' },
-  { oldName: 'PANINE',          canonicalName: 'Panine' },
-  { oldName: 'PANINE RROTULL',  canonicalName: 'Panine Rrotull' },
-  { oldName: 'THEKRORE',        canonicalName: 'Thekrore' },
-  { oldName: 'VEROLL',          canonicalName: 'Veroll' },
-  { oldName: 'KULURE 2 COPE',   canonicalName: 'Kulure 2 cope' },
-  { oldName: 'BAGETTI',         canonicalName: 'Bageti' },
-  { oldName: 'BYREK NORMAL',    canonicalName: 'Byrek' },
-];
-
-// All canonical delivery products with their correct data
-const PRODUCTS: { name: string; category: string; price: number; stock: number }[] = [
+const PRODUCTS: { name: string; category: string; price: number }[] = [
   // Pani
-  { name: 'Panine',          category: 'Pani',        price: 30,  stock: 0 },
-  { name: 'Panine Rrotull',  category: 'Pani',        price: 30,  stock: 0 },
+  { name: 'Panine',          category: 'Pani',         price: 30  },
+  { name: 'Panine Rrotull',  category: 'Pani',         price: 30  },
   // Vogel
-  { name: 'Vogel Integrale', category: 'Vogel',       price: 80,  stock: 0 },
-  { name: 'Vogel Tregu',     category: 'Vogel',       price: 70,  stock: 0 },
-  { name: 'Vogel Zeze',      category: 'Vogel',       price: 70,  stock: 0 },
-  { name: 'Vogel Fshati',    category: 'Vogel',       price: 80,  stock: 0 },
+  { name: 'Vogel Integrale', category: 'Vogel',        price: 80  },
+  { name: 'Vogel Tregu',     category: 'Vogel',        price: 70  },
+  { name: 'Vogel Zeze',      category: 'Vogel',        price: 70  },
+  { name: 'Vogel Fshati',    category: 'Vogel',        price: 80  },
   // Bukë
-  { name: 'Topa',            category: 'Bukë',        price: 50,  stock: 0 },
-  { name: 'Thekrore',        category: 'Bukë',        price: 90,  stock: 0 },
-  { name: 'Veroll',          category: 'Bukë',        price: 80,  stock: 0 },
-  { name: 'Kulure 2 cope',   category: 'Bukë',        price: 80,  stock: 0 },
-  { name: 'Mistri',          category: 'Bukë',        price: 60,  stock: 0 },
-  { name: 'Bageti',          category: 'Bukë',        price: 60,  stock: 0 },
+  { name: 'Topa',            category: 'Bukë',         price: 50  },
+  { name: 'Thekrore',        category: 'Bukë',         price: 90  },
+  { name: 'Veroll',          category: 'Bukë',         price: 80  },
+  { name: 'Kulure 2 cope',   category: 'Bukë',         price: 80  },
+  { name: 'Mistri',          category: 'Bukë',         price: 60  },
+  { name: 'Bageti',          category: 'Bukë',         price: 60  },
   // Bukë e Madhe
-  { name: 'Madhe Tregu',     category: 'Bukë e Madhe', price: 100, stock: 0 },
-  { name: 'Madhe Fshati',    category: 'Bukë e Madhe', price: 120, stock: 0 },
-  { name: 'Madhe Integrale', category: 'Bukë e Madhe', price: 120, stock: 0 },
+  { name: 'Madhe Tregu',     category: 'Bukë e Madhe', price: 100 },
+  { name: 'Madhe Fshati',    category: 'Bukë e Madhe', price: 120 },
+  { name: 'Madhe Integrale', category: 'Bukë e Madhe', price: 120 },
   // Byrek
-  { name: 'Byrek',           category: 'Byrek',       price: 150, stock: 0 },
+  { name: 'Byrek',           category: 'Byrek',        price: 150 },
 ];
 
 async function main() {
-  // Step 1: rename old-named products to canonical names
-  console.log('Step 1: Renaming old product names...');
-  for (const r of RENAMES) {
-    const existing = await prisma.product.findFirst({ where: { name: r.oldName } });
-    if (!existing) continue;
-    // Only rename if canonical doesn't already exist (avoid duplicate)
-    const canonical = await prisma.product.findFirst({ where: { name: r.canonicalName } });
-    if (canonical) {
-      // Canonical already exists — delete the old-named duplicate
-      await prisma.product.delete({ where: { id: existing.id } }).catch(() => {});
-      console.log(`  🗑  Deleted duplicate old-name "${r.oldName}" (canonical "${r.canonicalName}" exists)`);
-    } else {
-      await prisma.product.update({ where: { id: existing.id }, data: { name: r.canonicalName } });
-      console.log(`  ✏️  "${r.oldName}" → "${r.canonicalName}"`);
-    }
-  }
+  console.log('Ensuring delivery products exist...\n');
 
-  // Step 2: upsert all canonical products — create if missing, fix category + showInDelivery
-  console.log('\nStep 2: Upserting canonical products...');
   for (const p of PRODUCTS) {
     const existing = await prisma.product.findFirst({ where: { name: p.name } });
     if (existing) {
@@ -101,25 +47,24 @@ async function main() {
         where: { id: existing.id },
         data: { category: p.category, showInDelivery: true },
       });
-      console.log(`  ✅  Updated: "${p.name}" (category=${p.category})`);
+      console.log(`  ✅  Exists — updated category/showInDelivery: "${p.name}"`);
     } else {
       await prisma.product.create({
         data: {
           name: p.name,
           category: p.category,
           price: p.price,
-          stock: p.stock,
+          stock: 0,
           isActive: true,
           showInDelivery: true,
         },
       });
-      console.log(`  ➕  Created: "${p.name}" (category=${p.category})`);
+      console.log(`  ➕  Created: "${p.name}" (${p.category})`);
     }
   }
 
-  // Summary
-  const all = await prisma.product.findMany({ where: { showInDelivery: true } });
-  console.log(`\n✔  Done. ${all.length} products visible in delivery form:`);
+  const all = await prisma.product.findMany({ where: { showInDelivery: true }, orderBy: { category: 'asc' } });
+  console.log(`\n✔  Done. ${all.length} products now visible in delivery form:`);
   all.forEach((p) => console.log(`     ${p.category.padEnd(14)} ${p.name}`));
 }
 
