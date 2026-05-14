@@ -174,7 +174,7 @@ export function DeliveriesPage() {
 
   const LEFT_COLUMN  = ['Panine', 'Vogel Tregu', 'Vogel Fshati', 'Vogel Zeze', 'Vogel Integrale', 'Bageti', 'Thekrore', 'Veroll', 'Topa', 'Kulure 2 cope', 'Mistri'];
   const RIGHT_COLUMN = ['Madhe Tregu', 'Madhe Fshati', 'Madhe Integrale', 'Byrek'];
-  const getByName = (name: string) => products.find((p) => p.name === name) ?? null;
+  const getByName = (name: string) => products.find((p) => p.name.toLowerCase() === name.toLowerCase()) ?? null;
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -428,8 +428,7 @@ export function DeliveriesPage() {
             </div>
 
             {/* 2. Product buttons — fixed 2 columns */}
-            {selectedClientId && (
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <Label className="text-sm font-semibold">
                   Produktet
                   {selectedItems.length > 0 && (
@@ -493,8 +492,7 @@ export function DeliveriesPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+            </div>
 
             {/* 3. Notes */}
             <div className="space-y-2">
