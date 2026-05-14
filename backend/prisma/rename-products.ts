@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const renames: { oldName: string; newName: string; category: string; price?: number }[] = [
+  // Original shortcodes
   { oldName: 'M.TREGU',  newName: 'Madhe Tregu',      category: 'Bukë e Madhe', price: 100 },
   { oldName: 'M.FSHATI', newName: 'Madhe Fshati',     category: 'Bukë e Madhe', price: 120 },
   { oldName: 'M.INTE',   newName: 'Madhe Integrale',  category: 'Bukë e Madhe', price: 120 },
@@ -19,6 +20,22 @@ const renames: { oldName: string; newName: string; category: string; price?: num
   { oldName: 'PANI.GJ',  newName: 'Panine',           category: 'Pani' },
   { oldName: 'PANI.RR',  newName: 'Panine Rrotull',   category: 'Pani' },
   { oldName: 'BYREK',    newName: 'Byrek',             category: 'Byrek' },
+
+  // Uppercase / alternative names found in live DB
+  { oldName: 'MADHE TREGU',     newName: 'Madhe Tregu',     category: 'Bukë e Madhe', price: 100 },
+  { oldName: 'MADHE FSHATI',    newName: 'Madhe Fshati',    category: 'Bukë e Madhe', price: 120 },
+  { oldName: 'MADHE INTEGRALE', newName: 'Madhe Integrale', category: 'Bukë e Madhe', price: 120 },
+  { oldName: 'VOGEL INTEGRALE', newName: 'Vogel Integrale', category: 'Vogel' },
+  { oldName: 'VOGEL TREGU',     newName: 'Vogel Tregu',     category: 'Vogel' },
+  { oldName: 'VOGEL ZEZE',      newName: 'Vogel Zeze',      category: 'Vogel' },
+  { oldName: 'VOGEL FSHATI',    newName: 'Vogel Fshati',    category: 'Vogel' },
+  { oldName: 'PANINE',          newName: 'Panine',          category: 'Pani' },
+  { oldName: 'PANINE RROTULL',  newName: 'Panine Rrotull',  category: 'Pani' },
+  { oldName: 'THEKRORE',        newName: 'Thekrore',        category: 'Bukë' },
+  { oldName: 'VEROLL',          newName: 'Veroll',          category: 'Bukë' },
+  { oldName: 'KULURE 2 COPE',   newName: 'Kulure 2 cope',  category: 'Bukë' },
+  { oldName: 'BAGETTI',         newName: 'Bageti',          category: 'Bukë', price: 60 },
+  { oldName: 'BYREK NORMAL',    newName: 'Byrek',           category: 'Byrek' },
 ];
 
 async function main() {

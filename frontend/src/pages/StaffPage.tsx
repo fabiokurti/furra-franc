@@ -209,10 +209,12 @@ export function StaffPage() {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-base leading-tight">{staff.name}</CardTitle>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{staff.email}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-xs text-muted-foreground truncate">{staff.email}</p>
+                      <Badge variant="secondary" className="shrink-0 text-xs">{staff.clients.length} klientë</Badge>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <Badge variant="secondary">{staff.clients.length} klientë</Badge>
                     <Button size="icon" variant="ghost" className="h-7 w-7" title="Historia e dërgesave" onClick={() => navigate(`/staff/${staff.id}`)}>
                       <History className="h-3.5 w-3.5" />
                     </Button>

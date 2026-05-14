@@ -172,9 +172,10 @@ export function DeliveriesPage() {
   );
   const hasDailyStock = dailyStock !== null;
 
-  const LEFT_COLUMN  = ['p-pani-gj', 'p-v-tregu', 'p-v-fshati', 'p-v-zeze', 'p-v-inte', 'p-bagtti', 'p-thekre', 'p-verdhe', 'p-topa', 'p-kulure', 'p-mistri'];
-  const RIGHT_COLUMN = ['p-m-tregu', 'p-m-fshati', 'p-m-inte', 'p-byrek'];
-  const getById = (id: string) => products.find((p) => p.id === id) ?? null;
+  const LEFT_COLUMN  = ['Panine', 'Vogel Tregu', 'Vogel Fshati', 'Vogel Zeze', 'Vogel Integrale', 'Bageti', 'Thekrore', 'Veroll', 'Topa', 'Kulure 2 cope', 'Mistri'];
+  const RIGHT_COLUMN = ['Madhe Tregu', 'Madhe Fshati', 'Madhe Integrale', 'Byrek'];
+  const norm = (s: string) => s.toLowerCase().trim();
+  const getByName = (name: string) => products.find((p) => norm(p.name) === norm(name)) ?? null;
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -441,23 +442,19 @@ export function DeliveriesPage() {
                   {[LEFT_COLUMN, RIGHT_COLUMN].map((col, ci) => (
                     <div key={ci} className="flex-1 space-y-1.5">
                       {col.map((name) => {
-                        const product = getById(name);
+                        const product = getByName(name);
                         if (!product) return null;
                         const selected = isSelected(product.id);
                         const price = getPriceForProduct(product.id);
                         const item = selectedItems.find((i) => i.productId === product.id);
                         const remaining = stockItemMap[product.id] ?? null;
-                        const noStock = hasDailyStock && (remaining === null || remaining <= 0);
                         return (
                           <div key={product.id}>
                             <button
                               type="button"
-                              onClick={() => !noStock && toggleProduct(product.id)}
-                              disabled={noStock}
+                              onClick={() => toggleProduct(product.id)}
                               className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
-                                noStock
-                                  ? 'border-border bg-muted opacity-50 cursor-not-allowed'
-                                  : selected
+                                selected
                                   ? 'border-primary bg-primary/10 text-primary'
                                   : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
                               }`}
