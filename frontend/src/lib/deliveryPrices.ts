@@ -19,14 +19,18 @@ export async function resolveDeliveryPrices(delivery: Delivery): Promise<Record<
   return map;
 }
 
-// Build a price map for all items across multiple deliveries, using already-loaded client data.
+// Build a price map for all items across multiple deliveries.
+// Always fetches client prices and products fresh (same pattern as resolveDeliveryPrices).
 export async function resolveClientPriceMap(
-  client: Client,
+  client: Pick<Client, 'id'>,
   deliveries: Delivery[],
 ): Promise<Record<string, number>> {
-  const productsRes = await api.get('/products');
+  const [clientRes, productsRes] = await Promise.all([
+    api.get(`/clients/${client.id}`),
+    api.get('/products'),
+  ]);
   const products: Product[] = productsRes.data.products ?? productsRes.data;
-  const clientPrices: ClientProductPrice[] = client.prices ?? [];
+  const clientPrices: ClientProductPrice[] = clientRes.data.client.prices || [];
 
   const map: Record<string, number> = {};
   for (const d of deliveries) {
