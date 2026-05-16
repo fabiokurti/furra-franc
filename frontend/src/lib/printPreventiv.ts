@@ -30,9 +30,9 @@ export function printPreventiv(delivery: Delivery & { totalPrice?: number }) {
     *{margin:0;padding:0;box-sizing:border-box}
     body{
       font-family:'Courier New',Courier,monospace;
-      font-size:11pt;
+      font-size:12pt;
       color:#000;
-      width:72mm;
+      max-width:80mm;
       padding:4mm 3mm 8mm;
     }
     .c{text-align:center}
@@ -45,8 +45,10 @@ export function printPreventiv(delivery: Delivery & { totalPrice?: number }) {
     td{padding:2px 0;vertical-align:top}
     th{text-align:left;border-bottom:1px dashed #000;padding-bottom:3px;font-size:10pt}
     th:last-child{text-align:right}
-    @page{size:80mm auto;margin:0}
-    @media print{body{width:72mm}}
+    @page{margin:8mm}
+    @media print{
+      body{width:auto;max-width:100%}
+    }
   </style>
 </head>
 <body>
