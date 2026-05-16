@@ -44,11 +44,12 @@ export function ClientDetailPage() {
     setIsLoading(true);
     Promise.all([
       api.get(`/clients/${id}`),
-      api.get('/deliveries', { params: { clientId: id } }),
+      api.get('/deliveries', { params: { clientId: id, date: 'all' } }),
     ])
       .then(([clientRes, deliveriesRes]) => {
         setClient(clientRes.data.client);
-        setDeliveries(deliveriesRes.data.deliveries);
+        const all: Delivery[] = deliveriesRes.data.deliveries;
+        setDeliveries(all.filter((d) => d.clientId === id));
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));

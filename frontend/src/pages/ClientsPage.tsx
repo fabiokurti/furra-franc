@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Phone, MapPin, User, ChevronDown, ChevronUp, Check, Search, History } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, User, ChevronDown, ChevronUp, Check, Search, History } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -241,8 +241,6 @@ export function ClientsPage() {
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium">Emri</th>
               {isAdmin && <th className="px-4 py-3 text-left font-medium">Shpërndarësi</th>}
-              <th className="px-4 py-3 text-left font-medium">Adresa</th>
-              <th className="px-4 py-3 text-left font-medium">Telefoni</th>
               <th className="px-4 py-3 text-left font-medium">Çmimet</th>
               <th className="px-4 py-3 text-right font-medium">Veprimet</th>
             </tr>
@@ -251,7 +249,7 @@ export function ClientsPage() {
             {isLoading ? (
               [...Array(5)].map((_, i) => (
                 <tr key={i} className="border-b last:border-0">
-                  {[...Array(isAdmin ? 6 : 5)].map((__, j) => (
+                  {[...Array(isAdmin ? 4 : 3)].map((__, j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-4 rounded bg-muted animate-pulse" />
                     </td>
@@ -260,7 +258,7 @@ export function ClientsPage() {
               ))
             ) : clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
               <tr>
-                <td colSpan={isAdmin ? 6 : 5} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={isAdmin ? 4 : 3} className="px-4 py-12 text-center text-muted-foreground">
                   {clients.length === 0
                     ? (isAdmin ? 'Ende nuk ka klientë. Shto klientin e parë!' : 'Nuk keni klientë të caktuar.')
                     : 'Nuk u gjet asnjë klient.'}
@@ -282,20 +280,6 @@ export function ClientsPage() {
                           </Badge>
                         </td>
                       )}
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {client.address ? (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5 shrink-0" />{client.address}
-                          </span>
-                        ) : <span className="text-xs italic">—</span>}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {client.phone ? (
-                          <span className="flex items-center gap-1">
-                            <Phone className="h-3.5 w-3.5 shrink-0" />{client.phone}
-                          </span>
-                        ) : <span className="text-xs italic">—</span>}
-                      </td>
                       <td className="px-4 py-3">
                         <button
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"

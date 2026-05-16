@@ -23,14 +23,9 @@ export async function getDeliveries(req: Request, res: Response): Promise<void> 
 
   const where: Record<string, unknown> = {};
 
-  // Skip date filter when 'all' is requested by admin, or when fetching full history for a client/staff
-  const skipDate = date === 'all' && isAdmin;
-  if (!skipDate) {
-    if (!clientId && !staffId) {
-      where.deliveryDate = getDayRange(date);
-    } else if (date && date !== 'all') {
-      where.deliveryDate = getDayRange(date);
-    }
+  // Apply date filter unless 'all' is requested
+  if (date !== 'all') {
+    where.deliveryDate = getDayRange(date);
   }
 
   if (isAdmin && clientId) {
@@ -39,6 +34,7 @@ export async function getDeliveries(req: Request, res: Response): Promise<void> 
     where.staffId = staffId;
   } else if (!isAdmin) {
     where.staffId = req.user!.userId;
+    if (clientId) where.clientId = clientId;
   }
 
   const raw = await prisma.delivery.findMany({

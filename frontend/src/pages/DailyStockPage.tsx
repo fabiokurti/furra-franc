@@ -96,6 +96,8 @@ export function DailyStockPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
+  const [previousRemaining, setPreviousRemaining] = useState<InputMap>({});
+
   function toggleExpand(id: string) {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -133,7 +135,24 @@ export function DailyStockPage() {
       setProducts(active);
       const blank: InputMap = {};
       active.forEach((p) => { blank[p.id] = 0; });
-      if (!stockRes.data.entry) setQuantities({ ...blank });
+      if (!stockRes.data.entry) {
+        setQuantities({ ...blank });
+        // load previous day's remaining items
+        try {
+          const histRes = await api.get('/daily-stock/history');
+          const entries: DailyStock[] = histRes.data.entries ?? [];
+          const last = entries[0];
+          if (last) {
+            const rem: InputMap = {};
+            for (const item of last.items) {
+              if (item.remaining > 0) rem[item.productId] = item.remaining;
+            }
+            setPreviousRemaining(rem);
+          }
+        } catch { /* ignore */ }
+      } else {
+        setPreviousRemaining({});
+      }
       setAddQuantities({ ...blank });
       setNextQuantities({ ...blank });
     } finally {
@@ -336,6 +355,38 @@ export function DailyStockPage() {
           <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
             Shkruaj sasinë e çdo produkti dhe kliko <strong>Hap Prodhimin</strong>.
           </div>
+
+          {/* Previous day leftovers banner */}
+          {Object.keys(previousRemaining).length > 0 && (
+            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 px-4 py-3 gap-3 flex-wrap">
+              <div>
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                  Ka mbetje nga dita e kaluar
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                  {Object.values(previousRemaining).reduce((a, b) => a + b, 0)} copë nga {Object.keys(previousRemaining).length} produkte
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:border-blue-700 shrink-0"
+                onClick={() =>
+                  setQuantities((prev) => {
+                    const next = { ...prev };
+                    for (const [pid, qty] of Object.entries(previousRemaining)) {
+                      next[pid] = (next[pid] ?? 0) + qty;
+                    }
+                    return next;
+                  })
+                }
+              >
+                <PackageCheck className="h-4 w-4 mr-1.5" />
+                Shto mbetjet
+              </Button>
+            </div>
+          )}
           <ProductForm
             products={products}
             quantities={quantities}

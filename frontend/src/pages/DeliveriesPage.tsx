@@ -62,13 +62,17 @@ export function DeliveriesPage() {
   const [editingDelivery, setEditingDelivery]   = useState<Delivery | null>(null);
 
   const today = todayISO();
+  const yesterday = (() => {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  })();
 
   // ── data fetching ──────────────────────────────────────────────
   const fetchDeliveries = () => {
     setIsLoading(true);
-    const params: Record<string, string> = { date: isAdmin ? dateFilter : today };
+    const params: Record<string, string> = { date: dateFilter };
     if (isAdmin && staffFilter !== 'ALL') params.staffId = staffFilter;
-    if (isAdmin && clientFilter !== 'ALL') params.clientId = clientFilter;
+    if (clientFilter !== 'ALL') params.clientId = clientFilter;
     api.get('/deliveries', { params })
       .then((res) => setDeliveries(res.data.deliveries))
       .catch(console.error)
@@ -246,6 +250,31 @@ export function DeliveriesPage() {
           <span className="text-muted-foreground">paguar</span>
         </div>
       </div>
+
+      {/* Staff filters (non-admin) */}
+      {!isAdmin && (
+        <div className="flex flex-wrap items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Input
+            type="date"
+            value={dateFilter === 'all' ? '' : dateFilter}
+            onChange={(e) => setDateFilter(e.target.value || today)}
+            className="h-8 w-36 text-sm"
+          />
+          <Button size="sm" variant={dateFilter === today ? 'default' : 'outline'} className="h-8 text-xs px-3" onClick={() => setDateFilter(today)}>Sot</Button>
+          <Button size="sm" variant={dateFilter === yesterday ? 'default' : 'outline'} className="h-8 text-xs px-3" onClick={() => setDateFilter(yesterday)}>Dje</Button>
+          <Button size="sm" variant={dateFilter === 'all' ? 'default' : 'outline'} className="h-8 text-xs px-3" onClick={() => setDateFilter('all')}>Të gjitha</Button>
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="h-8 w-40 text-xs"><SelectValue placeholder="Klienti..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Të gjithë klientët</SelectItem>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Admin filters */}
       {isAdmin && (
