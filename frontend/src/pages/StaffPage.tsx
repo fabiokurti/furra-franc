@@ -143,8 +143,8 @@ export function StaffPage() {
     return (
       <div className="space-y-6">
         <div><h1 className="text-2xl font-bold">Stafi & Klientët</h1></div>
-        <div className="rounded-md border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-md border overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left font-medium">Stafi</th>
@@ -206,8 +206,8 @@ export function StaffPage() {
         />
       </div>
 
-      <div className="rounded-md border overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-md border overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium">Stafi</th>

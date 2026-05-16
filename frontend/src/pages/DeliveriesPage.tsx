@@ -382,76 +382,56 @@ export function DeliveriesPage() {
                         <p className="mt-2 text-xs italic text-muted-foreground">📝 {delivery.notes}</p>
                       )}
                     </div>
-                    <div className="flex flex-col gap-2 shrink-0 items-end">
+                    <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[220px]">
                       {delivery.totalPrice !== undefined && (
                         <span className="text-lg font-bold text-primary">{delivery.totalPrice.toFixed(0)} L</span>
                       )}
-                      <div className="flex flex-wrap gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1.5"
-                          title="Printo në printer termal 80mm (Bluetooth)"
+                      <div className="grid grid-cols-3 gap-1.5 w-full">
+                        <Button size="sm" variant="outline" className="gap-1.5"
+                          title="Printo 80mm (Bluetooth)"
                           disabled={printingId === delivery.id + '80mm'}
-                          onClick={() => handlePrint(delivery, '80mm')}
-                        >
+                          onClick={() => handlePrint(delivery, '80mm')}>
                           {printingId === delivery.id + '80mm'
                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             : <Printer className="h-3.5 w-3.5" />}
-                          <span className="hidden sm:inline">80mm</span>
+                          80mm
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1.5"
-                          title="Printo në printer A4"
+                        <Button size="sm" variant="outline" className="gap-1.5"
+                          title="Printo A4"
                           disabled={printingId === delivery.id + 'a4'}
-                          onClick={() => handlePrint(delivery, 'a4')}
-                        >
+                          onClick={() => handlePrint(delivery, 'a4')}>
                           {printingId === delivery.id + 'a4'
                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             : <Printer className="h-3.5 w-3.5" />}
-                          <span className="hidden sm:inline">A4</span>
+                          A4
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1.5"
-                          onClick={() => navigate(`/deliveries/${delivery.id}`)}
-                        >
+                        <Button size="sm" variant="outline" className="gap-1.5"
+                          onClick={() => navigate(`/deliveries/${delivery.id}`)}>
                           Detajet <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1.5"
-                          onClick={() => openEdit(delivery)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Ndrysho</span>
+                        <Button size="sm" variant="outline" className="gap-1.5"
+                          onClick={() => openEdit(delivery)}>
+                          <Pencil className="h-3.5 w-3.5" /> Ndrysho
                         </Button>
                         {delivery.status === 'PENDING' && (
                           <>
                             <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700"
                               onClick={() => markStatus(delivery.id, 'COMPLETED')} disabled={isUpdating}>
                               {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                              <span className="hidden sm:inline">Shëno si </span>Kryer
+                              Kryer
                             </Button>
                             <Button size="sm" variant="outline"
                               className="gap-1.5 text-destructive border-destructive hover:bg-destructive/10"
                               onClick={() => markStatus(delivery.id, 'CANCELLED')} disabled={isUpdating}>
-                              <XCircle className="h-3.5 w-3.5" />Anulo
+                              <XCircle className="h-3.5 w-3.5" /> Anulo
                             </Button>
                           </>
                         )}
                         {delivery.status === 'COMPLETED' && (
-                          <Button
-                            size="sm"
+                          <Button size="sm"
                             variant={delivery.isPaid ? 'outline' : 'default'}
                             className={`gap-1.5 ${delivery.isPaid ? '' : 'bg-green-600 hover:bg-green-700'}`}
-                            onClick={() => togglePaid(delivery.id)}
-                            disabled={isUpdating}
-                          >
+                            onClick={() => togglePaid(delivery.id)} disabled={isUpdating}>
                             <Banknote className="h-3.5 w-3.5" />
                             {delivery.isPaid ? 'Pa paguar' : 'Paguar'}
                           </Button>
@@ -460,8 +440,7 @@ export function DeliveriesPage() {
                           <Button size="sm" variant="ghost"
                             className="text-destructive hover:text-destructive gap-1.5"
                             onClick={() => handleDelete(delivery.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Fshi</span>
+                            <Trash2 className="h-3.5 w-3.5" /> Fshi
                           </Button>
                         )}
                       </div>

@@ -235,8 +235,8 @@ export function ClientsPage() {
         />
       </div>
 
-      <div className="rounded-md border overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-md border overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[580px]">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium">Emri</th>

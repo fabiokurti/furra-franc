@@ -1,4 +1,4 @@
-import type { Delivery } from '@/types';
+import type { Client, Delivery } from '@/types';
 import { formatDateAL } from './date';
 
 // ── ESC/POS constants ──────────────────────────────────────────────────────
@@ -93,32 +93,26 @@ function buildReceipt(
     sep('='),
     cmd(ESC, 0x61, 0x01),
     row('Furra Franc - Faleminderit!'),
-    nl(), nl(), nl(),
+    cmd(ESC, 0x64, 0x08),
     cmd(GS, 0x56, 0x42, 0x00),
   );
 }
 
-export async function printPreventivBT(
-  delivery: Delivery & { totalPrice?: number },
-  priceMap: Record<string, number>,
-): Promise<void> {
+// ── shared BLE connect / write ─────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function bleConnect(): Promise<{ device: any; writeChar: any } | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bt = (navigator as any).bluetooth;
-  if (!bt) { alert('Bluetooth nuk mbeshtehet. Hap me Chrome ne tablet.'); return; }
-
-  const data = buildReceipt(delivery, priceMap);
+  if (!bt) { alert('Bluetooth nuk mbeshtehet. Hap me Chrome ne tablet.'); return null; }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let device: any;
   try {
-    device = await bt.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: BLE_SERVICES.map((s) => s.svc),
-    });
+    device = await bt.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES.map((s) => s.svc) });
   } catch (e: unknown) {
     if ((e as Error)?.name !== 'NotFoundError')
       alert('Zgjidhja e printerit deshtoi: ' + (e as Error).message);
-    return;
+    return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,7 +121,7 @@ export async function printPreventivBT(
     server = await device.gatt.connect();
   } catch (e: unknown) {
     alert('Lidhja GATT deshtoi: ' + (e as Error).message);
-    return;
+    return null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -143,11 +137,105 @@ export async function printPreventivBT(
   if (!writeChar) {
     alert('Nuk u gjet sherbimi i printerit. Sigurohu qe OCBP-M88 eshte i ndezur.');
     device.gatt.disconnect();
-    return;
+    return null;
   }
 
+  return { device, writeChar };
+}
+
+function buildClientStatement(
+  client: Pick<Client, 'id' | 'name' | 'address' | 'phone'>,
+  deliveries: Delivery[],
+  filterLabel: string,
+  priceMap: Record<string, number>,
+): Uint8Array {
+  const now  = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  const sorted = [...deliveries].sort(
+    (a, b) => new Date(a.deliveryDate ?? a.createdAt).getTime() - new Date(b.deliveryDate ?? b.createdAt).getTime(),
+  );
+
+  const grouped: Record<string, Delivery[]> = {};
+  for (const d of sorted) {
+    const key = formatDateAL(d.deliveryDate ?? d.createdAt, true);
+    (grouped[key] ??= []).push(d);
+  }
+
+  let grandTotal = 0;
+  const bodyParts: Uint8Array[] = [];
+  for (const [dateLabel, items] of Object.entries(grouped)) {
+    bodyParts.push(cmd(ESC, 0x45, 0x01), row(dateLabel), cmd(ESC, 0x45, 0x00));
+    for (const d of items) {
+      let deliveryTotal = 0;
+      for (const i of d.items) {
+        const price     = priceMap[i.productId] ?? 0;
+        const lineTotal = i.quantity * price;
+        deliveryTotal  += lineTotal;
+        bodyParts.push(
+          row(i.product.name),
+          lr(`  ${i.quantity} x ${price} L`, `${lineTotal} L`),
+        );
+      }
+      grandTotal += deliveryTotal;
+      bodyParts.push(lr('  Totali dergeses:', `${deliveryTotal} L`), nl());
+    }
+    bodyParts.push(sep());
+  }
+
+  return merge(
+    cmd(ESC, 0x40),
+    cmd(ESC, 0x61, 0x01), cmd(GS, 0x21, 0x11), cmd(ESC, 0x45, 0x01),
+    row('FURRA FRANC'),
+    cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
+    row(`Fature - ${safe(filterLabel)}`),
+    nl(),
+    sep('='),
+    cmd(ESC, 0x61, 0x00),
+    cmd(ESC, 0x45, 0x01), row(`Klienti: ${client.name}`), cmd(ESC, 0x45, 0x00),
+    ...(client.address ? [row(`Adresa:  ${client.address}`)] : []),
+    ...(client.phone   ? [row(`Tel:     ${client.phone}`)]   : []),
+    row(`Ora: ${time}`),
+    sep('='),
+    ...bodyParts,
+    cmd(ESC, 0x45, 0x01), cmd(GS, 0x21, 0x11),
+    lr('TOTAL:', `${grandTotal.toFixed(0)} L`),
+    cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
+    sep('='),
+    cmd(ESC, 0x61, 0x01),
+    row('Furra Franc - Faleminderit!'),
+    cmd(ESC, 0x64, 0x08),
+    cmd(GS, 0x56, 0x42, 0x00),
+  );
+}
+
+export async function printClientStatementBT(
+  client: Pick<Client, 'id' | 'name' | 'address' | 'phone'>,
+  deliveries: Delivery[],
+  filterLabel: string,
+  priceMap: Record<string, number>,
+): Promise<void> {
+  const conn = await bleConnect();
+  if (!conn) return;
+  const { device, writeChar } = conn;
   try {
-    await bleWrite(writeChar, data);
+    await bleWrite(writeChar, buildClientStatement(client, deliveries, filterLabel, priceMap));
+  } catch (e: unknown) {
+    alert('Gabim gjate printimit: ' + (e as Error).message);
+  } finally {
+    device.gatt.disconnect();
+  }
+}
+
+export async function printPreventivBT(
+  delivery: Delivery & { totalPrice?: number },
+  priceMap: Record<string, number>,
+): Promise<void> {
+  const conn = await bleConnect();
+  if (!conn) return;
+  const { device, writeChar } = conn;
+  try {
+    await bleWrite(writeChar, buildReceipt(delivery, priceMap));
   } catch (e: unknown) {
     alert('Gabim gjate printimit: ' + (e as Error).message);
   } finally {
