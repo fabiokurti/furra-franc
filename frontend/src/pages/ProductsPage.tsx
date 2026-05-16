@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -130,39 +129,50 @@ export function ProductsPage() {
         />
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-40 rounded-lg border bg-card animate-pulse" />
-          ))}
-        </div>
-      ) : products.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Ende nuk ka produkte. Shto produktin e parë!</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase())).map((product) => (
-            <Card key={product.id} className="flex flex-col">
-              <CardContent className="flex flex-col flex-1 p-5 gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{product.name}</p>
+      <div className="rounded-md border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">Emri</th>
+              <th className="px-4 py-3 text-left font-medium">Kategoria</th>
+              <th className="px-4 py-3 text-left font-medium">Çmimi</th>
+              <th className="px-4 py-3 text-left font-medium">Stoku</th>
+              <th className="px-4 py-3 text-center font-medium">Dërgim</th>
+              <th className="px-4 py-3 text-right font-medium">Veprimet</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              [...Array(5)].map((_, i) => (
+                <tr key={i} className="border-b last:border-0">
+                  {[...Array(6)].map((__, j) => (
+                    <td key={j} className="px-4 py-3">
+                      <div className="h-4 rounded bg-muted animate-pulse" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                  {products.length === 0 ? 'Ende nuk ka produkte. Shto produktin e parë!' : 'Nuk u gjet asnjë produkt.'}
+                </td>
+              </tr>
+            ) : (
+              products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase())).map((product) => (
+                <tr key={product.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3">
+                    <p className="font-medium">{product.name}</p>
                     {product.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{product.description}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{product.description}</p>
                     )}
-                  </div>
-                  <Badge variant="secondary" className="shrink-0">{product.category}</Badge>
-                </div>
-
-                <div className="flex items-center justify-between mt-auto pt-2 border-t">
-                  <div>
-                    <p className="text-lg font-bold text-primary">{Number(product.price).toFixed(0)} L</p>
-                    <p className="text-xs text-muted-foreground">{product.stock} në stok</p>
-                  </div>
-                  <div className="flex gap-1">
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant="secondary">{product.category}</Badge>
+                  </td>
+                  <td className="px-4 py-3 font-bold text-primary">{Number(product.price).toFixed(0)} L</td>
+                  <td className="px-4 py-3 text-muted-foreground">{product.stock}</td>
+                  <td className="px-4 py-3 text-center">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -172,24 +182,23 @@ export function ProductsPage() {
                     >
                       <Truck className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(product)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1 justify-end">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(product)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(product.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

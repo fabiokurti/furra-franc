@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, MapPin, Phone, ChevronDown, ChevronUp, Package, UserPlus, Pencil, ArrowRightLeft, Plus, Search, History, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -145,10 +143,25 @@ export function StaffPage() {
     return (
       <div className="space-y-6">
         <div><h1 className="text-2xl font-bold">Stafi & Klientët</h1></div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-32 rounded-lg border bg-card animate-pulse" />
-          ))}
+        <div className="rounded-md border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="px-4 py-3 text-left font-medium">Stafi</th>
+                <th className="px-4 py-3 text-left font-medium">Klientët</th>
+                <th className="px-4 py-3 text-right font-medium">Veprimet</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(4)].map((_, i) => (
+                <tr key={i} className="border-b last:border-0">
+                  <td className="px-4 py-3"><div className="h-4 w-40 rounded bg-muted animate-pulse" /></td>
+                  <td className="px-4 py-3"><div className="h-4 w-16 rounded bg-muted animate-pulse" /></td>
+                  <td className="px-4 py-3"><div className="h-4 w-20 rounded bg-muted animate-pulse ml-auto" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     );
@@ -193,89 +206,97 @@ export function StaffPage() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {staffList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase())).map((staff) => {
-          const initials = staff.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-          const isExpanded = expandedStaff === staff.id;
+      <div className="rounded-md border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">Stafi</th>
+              <th className="px-4 py-3 text-left font-medium">Klientët</th>
+              <th className="px-4 py-3 text-right font-medium">Veprimet</th>
+            </tr>
+          </thead>
+          <tbody>
+            {staffList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
+              <tr>
+                <td colSpan={3} className="px-4 py-12 text-center text-muted-foreground">Nuk u gjet asnjë staf.</td>
+              </tr>
+            ) : (
+              staffList.filter((s) => s.name.toLowerCase().includes(search.toLowerCase())).map((staff) => {
+                const initials = staff.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+                const isExpanded = expandedStaff === staff.id;
 
-          return (
-            <Card key={staff.id} className="flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 shrink-0">
-                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base leading-tight">{staff.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-muted-foreground truncate">{staff.email}</p>
-                      <Badge variant="secondary" className="shrink-0 text-xs">{staff.clients.length} klientë</Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" title="Historia e dërgesave" onClick={() => navigate(`/staff/${staff.id}`)}>
-                      <History className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(staff)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleDeleteStaff(staff)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="pt-0 flex-1 flex flex-col">
-                {staff.clients.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic text-center py-3">
-                    Nuk ka klientë të caktuar
-                  </p>
-                ) : (
-                  <>
-                    <div className="space-y-1.5">
-                      {(isExpanded ? staff.clients : staff.clients.slice(0, 3)).map((client) => (
-                        <div key={client.id} className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{client.name}</p>
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-                              {client.address && (
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <MapPin className="h-3 w-3 shrink-0" />
-                                  <span className="truncate max-w-[140px]">{client.address}</span>
-                                </span>
-                              )}
-                              {client.phone && (
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Phone className="h-3 w-3 shrink-0" />
-                                  {client.phone}
-                                </span>
-                              )}
-                            </div>
+                return (
+                  <React.Fragment key={staff.id}>
+                    <tr className="border-b hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium leading-tight">{staff.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{staff.email}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                    {staff.clients.length > 3 && (
-                      <button
-                        className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent transition-colors"
-                        onClick={() => setExpandedStaff(isExpanded ? null : staff.id)}
-                      >
-                        {isExpanded ? (
-                          <><ChevronUp className="h-3.5 w-3.5" />Shfaq më pak</>
+                      </td>
+                      <td className="px-4 py-3">
+                        {staff.clients.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">Nuk ka klientë</span>
                         ) : (
-                          <><ChevronDown className="h-3.5 w-3.5" />Shfaq të gjithë ({staff.clients.length - 3} të tjerë)</>
+                          <button
+                            className="flex items-center gap-1.5 text-left"
+                            onClick={() => setExpandedStaff(isExpanded ? null : staff.id)}
+                          >
+                            <Badge variant="secondary">{staff.clients.length} klientë</Badge>
+                            {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </button>
                         )}
-                      </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1 justify-end">
+                          <Button size="icon" variant="ghost" className="h-8 w-8" title="Historia e dërgesave" onClick={() => navigate(`/staff/${staff.id}`)}>
+                            <History className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(staff)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDeleteStaff(staff)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="border-b bg-muted/20">
+                        <td colSpan={3} className="px-6 py-3">
+                          <div className="space-y-1.5">
+                            {staff.clients.map((client) => (
+                              <div key={client.id} className="flex items-start gap-4 rounded-md bg-background border px-3 py-2">
+                                <p className="text-sm font-medium min-w-[160px]">{client.name}</p>
+                                <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                                  {client.address && (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <MapPin className="h-3 w-3 shrink-0" />{client.address}
+                                    </span>
+                                  )}
+                                  {client.phone && (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Phone className="h-3 w-3 shrink-0" />{client.phone}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Create Staff Dialog */}

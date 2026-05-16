@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, Phone, CheckCircle2, Clock, XCircle,
-  Banknote, Loader2, Trash2, User, CalendarDays, StickyNote,
+  Banknote, Loader2, Trash2, User, CalendarDays, StickyNote, Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
+import { printPreventiv } from '@/lib/printPreventiv';
 import { formatDateAL } from '@/lib/date';
 import type { Delivery } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -118,16 +119,26 @@ export function DeliveryDetailPage() {
             )}
           </div>
         </div>
-        {isAdmin && (
+        <div className="flex gap-2">
           <Button
             size="sm"
-            variant="ghost"
-            className="text-destructive hover:text-destructive gap-2"
-            onClick={handleDelete}
+            variant="outline"
+            className="gap-2"
+            onClick={() => printPreventiv(delivery)}
           >
-            <Trash2 className="h-4 w-4" /> Fshi
+            <Printer className="h-4 w-4" /> Preventiv
           </Button>
-        )}
+          {isAdmin && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:text-destructive gap-2"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" /> Fshi
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Info cards */}

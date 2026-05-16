@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays, Pencil } from 'lucide-react';
+import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays, Pencil, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,7 @@ import type { Delivery, Client, ClientProductPrice, Product, User as UserType, D
 import { useAuth } from '@/context/AuthContext';
 
 import { todayLocalISO, formatDateAL } from '@/lib/date';
+import { printPreventiv } from '@/lib/printPreventiv';
 
 function todayISO() {
   return todayLocalISO();
@@ -183,14 +184,10 @@ export function DeliveriesPage() {
   );
   const hasDailyStock = dailyStock !== null;
 
-  // Dynamic 2-column split by category — left: small breads, right: large + byrek
-  const RIGHT_CATS = new Set(['Bukë e Madhe', 'Byrek']);
-  const CAT_ORDER_LEFT  = ['Pani', 'Vogel', 'Bukë'];
-  const CAT_ORDER_RIGHT = ['Bukë e Madhe', 'Byrek'];
-  const catIdx = (cat: string, order: string[]) => { const i = order.indexOf(cat); return i === -1 ? 99 : i; };
-  const deliveryProducts = products.filter(p => p.showInDelivery);
-  const sortedLeft  = deliveryProducts.filter(p => !RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_LEFT)  - catIdx(b.category, CAT_ORDER_LEFT)  || a.name.localeCompare(b.name));
-  const sortedRight = deliveryProducts.filter(p =>  RIGHT_CATS.has(p.category)).sort((a, b) => catIdx(a.category, CAT_ORDER_RIGHT) - catIdx(b.category, CAT_ORDER_RIGHT) || a.name.localeCompare(b.name));
+  const deliveryProducts = products.filter((p) => p.showInDelivery);
+  const sortedByPrice = [...deliveryProducts].sort(
+    (a, b) => getPriceForProduct(a.id) - getPriceForProduct(b.id) || a.name.localeCompare(b.name)
+  );
 
   const pendingCount   = deliveries.filter((d) => d.status === 'PENDING').length;
   const completedCount = deliveries.filter((d) => d.status === 'COMPLETED').length;
@@ -380,6 +377,16 @@ export function DeliveriesPage() {
                           size="sm"
                           variant="outline"
                           className="gap-1.5"
+                          title="Printo Preventiv"
+                          onClick={() => printPreventiv(delivery)}
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Preventiv</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5"
                           onClick={() => navigate(`/deliveries/${delivery.id}`)}
                         >
                           Detajet <ChevronRight className="h-3.5 w-3.5" />
@@ -483,54 +490,50 @@ export function DeliveriesPage() {
                     </span>
                   )}
                 </Label>
-                <div className="flex gap-3">
-                  {[sortedLeft, sortedRight].map((col, ci) => (
-                    <div key={ci} className="flex-1 space-y-1.5">
-                      {col.map((product) => {
-                        const selected = isSelected(product.id);
-                        const price = getPriceForProduct(product.id);
-                        const item = selectedItems.find((i) => i.productId === product.id);
-                        const remaining = stockItemMap[product.id] ?? null;
-                        return (
-                          <div key={product.id}>
-                            <button
-                              type="button"
-                              onClick={() => toggleProduct(product.id)}
-                              className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
-                                selected
-                                  ? 'border-primary bg-primary/10 text-primary'
-                                  : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
-                              }`}
-                            >
-                              <p className="text-sm font-semibold leading-tight">{product.name}</p>
-                              <div className="flex items-center justify-between mt-0.5">
-                                <p className="text-xs font-medium opacity-80">{price} L</p>
-                                {remaining !== null && (
-                                  <p className={`text-xs font-semibold ${remaining <= 0 ? 'text-red-500' : 'text-green-600'}`}>
-                                    {remaining}
-                                  </p>
-                                )}
-                              </div>
-                            </button>
-                            {selected && item && (
-                              <div className="flex items-center justify-between mt-1 px-1">
-                                <span className="text-xs text-muted-foreground">Sasia:</span>
-                                <div className="flex items-center gap-1">
-                                  <button type="button" onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
-                                    <Minus className="h-3 w-3" />
-                                  </button>
-                                  <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.quantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
-                                  <button type="button" onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
-                                    <Plus className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {sortedByPrice.map((product) => {
+                    const selected = isSelected(product.id);
+                    const price = getPriceForProduct(product.id);
+                    const item = selectedItems.find((i) => i.productId === product.id);
+                    const remaining = stockItemMap[product.id] ?? null;
+                    return (
+                      <div key={product.id}>
+                        <button
+                          type="button"
+                          onClick={() => toggleProduct(product.id)}
+                          className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
+                            selected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
+                          }`}
+                        >
+                          <p className="text-sm font-semibold leading-tight">{product.name}</p>
+                          <div className="flex items-center justify-between mt-0.5">
+                            <p className="text-xs font-medium opacity-80">{price} L</p>
+                            {remaining !== null && (
+                              <p className={`text-xs font-semibold ${remaining <= 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                {remaining}
+                              </p>
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                        </button>
+                        {selected && item && (
+                          <div className="flex items-center justify-between mt-1 px-1">
+                            <span className="text-xs text-muted-foreground">Sasia:</span>
+                            <div className="flex items-center gap-1">
+                              <button type="button" onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                <Minus className="h-3 w-3" />
+                              </button>
+                              <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.quantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
+                              <button type="button" onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
             </div>
 

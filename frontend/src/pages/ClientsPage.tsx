@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Pencil, Trash2, Loader2, Phone, MapPin, User, ChevronDown, ChevronUp, Check, Search, History } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -236,128 +235,143 @@ export function ClientsPage() {
         />
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-40 rounded-lg border bg-card animate-pulse" />
-          ))}
-        </div>
-      ) : clients.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              {isAdmin ? 'Ende nuk ka klientë. Shto klientin e parë!' : 'Nuk keni klientë të caktuar.'}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).map((client) => {
-            const isExpanded = expandedPrices === client.id;
-            const clientPriceMap = priceCache[client.id] || {};
+      <div className="rounded-md border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">Emri</th>
+              {isAdmin && <th className="px-4 py-3 text-left font-medium">Shpërndarësi</th>}
+              <th className="px-4 py-3 text-left font-medium">Adresa</th>
+              <th className="px-4 py-3 text-left font-medium">Telefoni</th>
+              <th className="px-4 py-3 text-left font-medium">Çmimet</th>
+              <th className="px-4 py-3 text-right font-medium">Veprimet</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              [...Array(5)].map((_, i) => (
+                <tr key={i} className="border-b last:border-0">
+                  {[...Array(isAdmin ? 6 : 5)].map((__, j) => (
+                    <td key={j} className="px-4 py-3">
+                      <div className="h-4 rounded bg-muted animate-pulse" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
+              <tr>
+                <td colSpan={isAdmin ? 6 : 5} className="px-4 py-12 text-center text-muted-foreground">
+                  {clients.length === 0
+                    ? (isAdmin ? 'Ende nuk ka klientë. Shto klientin e parë!' : 'Nuk keni klientë të caktuar.')
+                    : 'Nuk u gjet asnjë klient.'}
+                </td>
+              </tr>
+            ) : (
+              clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).map((client) => {
+                const isExpanded = expandedPrices === client.id;
+                const clientPriceMap = priceCache[client.id] || {};
 
-            return (
-              <Card key={client.id} className="flex flex-col">
-                <CardContent className="flex flex-col flex-1 p-5 gap-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base">{client.name}</p>
+                return (
+                  <React.Fragment key={client.id}>
+                    <tr className="border-b hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 font-medium">{client.name}</td>
                       {isAdmin && (
-                        <Badge variant="secondary" className="mt-1 text-xs">
-                          <User className="h-3 w-3 mr-1" />{client.assignedTo?.name}
-                        </Badge>
+                        <td className="px-4 py-3">
+                          <Badge variant="secondary" className="text-xs">
+                            <User className="h-3 w-3 mr-1" />{client.assignedTo?.name}
+                          </Badge>
+                        </td>
                       )}
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="Historia e dërgesave" onClick={() => navigate(`/clients/${client.id}`)}>
-                        <History className="h-3.5 w-3.5" />
-                      </Button>
-                      {isAdmin && (
-                        <>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>
-                            <Pencil className="h-3.5 w-3.5" />
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {client.address ? (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />{client.address}
+                          </span>
+                        ) : <span className="text-xs italic">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {client.phone ? (
+                          <span className="flex items-center gap-1">
+                            <Phone className="h-3.5 w-3.5 shrink-0" />{client.phone}
+                          </span>
+                        ) : <span className="text-xs italic">—</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => togglePrices(client.id)}
+                        >
+                          {isAdmin ? 'Ndrysho çmimet' : 'Shfaq çmimet'}
+                          {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Historia e dërgesave" onClick={() => navigate(`/clients/${client.id}`)}>
+                            <History className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(client.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 text-sm text-muted-foreground mt-1">
-                    {client.address && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{client.address}</span>
-                      </div>
-                    )}
-                    {client.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-3.5 w-3.5 shrink-0" />
-                        <span>{client.phone}</span>
-                      </div>
-                    )}
-                    {client.notes && (
-                      <p className="text-xs italic line-clamp-2 pt-1 border-t">{client.notes}</p>
-                    )}
-                  </div>
-
-                  {/* Price list toggle */}
-                  <button
-                    className="mt-3 flex w-full items-center justify-between rounded-md border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent transition-colors"
-                    onClick={() => togglePrices(client.id)}
-                  >
-                    <span>{isAdmin ? 'Ndrysho çmimet' : 'Çmimet (CMIMET)'}</span>
-                    {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                  </button>
-
-                  {isExpanded && (
-                    <div className="rounded-md border overflow-hidden">
-                      {isAdmin ? (
-                        // Admin: all products with editable inputs
-                        allProducts.length === 0 ? (
-                          <p className="text-xs text-muted-foreground p-3 text-center">Duke ngarkuar produktet...</p>
-                        ) : (
-                          <div className="divide-y max-h-64 overflow-y-auto">
-                            {allProducts.map((product) => (
-                              <PriceRow
-                                key={product.id}
-                                product={product}
-                                currentPrice={clientPriceMap[product.id] ?? null}
-                                defaultPrice={Number(product.price)}
-                                clientId={client.id}
-                                onSaved={(productId, price) => handlePriceSaved(client.id, productId, price)}
-                              />
-                            ))}
-                          </div>
-                        )
-                      ) : (
-                        // Staff: read-only
-                        Object.keys(clientPriceMap).length === 0 ? (
-                          <p className="text-xs text-muted-foreground p-3 text-center">Nuk ka çmime të regjistruara</p>
-                        ) : (
-                          <div className="divide-y max-h-48 overflow-y-auto">
-                            {Object.entries(clientPriceMap).map(([productId, price]) => {
-                              const product = allProducts.find((p) => p.id === productId);
-                              return (
-                                <div key={productId} className="flex items-center justify-between px-3 py-1.5 text-xs">
-                                  <span className="font-medium">{product?.name ?? productId}</span>
-                                  <span className="text-primary font-bold">{price} L</span>
+                          {isAdmin && (
+                            <>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(client)}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(client.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="border-b bg-muted/20">
+                        <td colSpan={isAdmin ? 6 : 5} className="px-6 py-3">
+                          <div className="rounded-md border overflow-hidden bg-background">
+                            {isAdmin ? (
+                              allProducts.length === 0 ? (
+                                <p className="text-xs text-muted-foreground p-3 text-center">Duke ngarkuar produktet...</p>
+                              ) : (
+                                <div className="divide-y max-h-64 overflow-y-auto">
+                                  {allProducts.map((product) => (
+                                    <PriceRow
+                                      key={product.id}
+                                      product={product}
+                                      currentPrice={clientPriceMap[product.id] ?? null}
+                                      defaultPrice={Number(product.price)}
+                                      clientId={client.id}
+                                      onSaved={(productId, price) => handlePriceSaved(client.id, productId, price)}
+                                    />
+                                  ))}
                                 </div>
-                              );
-                            })}
+                              )
+                            ) : (
+                              Object.keys(clientPriceMap).length === 0 ? (
+                                <p className="text-xs text-muted-foreground p-3 text-center">Nuk ka çmime të regjistruara</p>
+                              ) : (
+                                <div className="divide-y max-h-48 overflow-y-auto">
+                                  {Object.entries(clientPriceMap).map(([productId, price]) => {
+                                    const product = allProducts.find((p) => p.id === productId);
+                                    return (
+                                      <div key={productId} className="flex items-center justify-between px-3 py-1.5 text-xs">
+                                        <span className="font-medium">{product?.name ?? productId}</span>
+                                        <span className="text-primary font-bold">{price} L</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )
+                            )}
                           </div>
-                        )
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Dialog */}
       {isAdmin && (
