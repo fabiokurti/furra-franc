@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
+import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv } from '@/lib/printPreventiv';
+import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 import { formatDateAL } from '@/lib/date';
 import type { Delivery } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -28,6 +30,7 @@ export function DeliveryDetailPage() {
   const [delivery, setDelivery] = useState<Delivery & { totalPrice?: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [printingType, setPrintingType] = useState<'80mm' | 'a4' | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -69,6 +72,18 @@ export function DeliveryDetailPage() {
     if (!delivery || !confirm('Fshi këtë dërgim?')) return;
     await api.delete(`/deliveries/${delivery.id}`);
     navigate('/deliveries');
+  };
+
+  const handlePrint = async (type: '80mm' | 'a4') => {
+    if (!delivery) return;
+    setPrintingType(type);
+    try {
+      const priceMap = await resolveDeliveryPrices(delivery);
+      if (type === '80mm') await printPreventivBT(delivery, priceMap);
+      else printPreventiv(delivery, priceMap);
+    } finally {
+      setPrintingType(null);
+    }
   };
 
   if (isLoading) {
@@ -124,9 +139,27 @@ export function DeliveryDetailPage() {
             size="sm"
             variant="outline"
             className="gap-2"
-            onClick={() => printPreventiv(delivery)}
+            title="Printo në printer termal 80mm (Bluetooth)"
+            disabled={printingType === '80mm'}
+            onClick={() => handlePrint('80mm')}
           >
-            <Printer className="h-4 w-4" /> Preventiv
+            {printingType === '80mm'
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <Printer className="h-4 w-4" />}
+            80mm
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            title="Printo në printer A4"
+            disabled={printingType === 'a4'}
+            onClick={() => handlePrint('a4')}
+          >
+            {printingType === 'a4'
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <Printer className="h-4 w-4" />}
+            A4
           </Button>
           {isAdmin && (
             <Button

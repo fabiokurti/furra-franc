@@ -13,7 +13,9 @@ import type { Delivery, Client, ClientProductPrice, Product, User as UserType, D
 import { useAuth } from '@/context/AuthContext';
 
 import { todayLocalISO, formatDateAL } from '@/lib/date';
+import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv } from '@/lib/printPreventiv';
+import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 
 function todayISO() {
   return todayLocalISO();
@@ -49,6 +51,7 @@ export function DeliveriesPage() {
   const [clientFilter, setClientFilter] = useState('ALL');
   const [dateFilter, setDateFilter]   = useState(todayISO());
   const [updatingId, setUpdatingId]   = useState<string | null>(null);
+  const [printingId, setPrintingId]   = useState<string | null>(null);
   const [dailyStock, setDailyStock]   = useState<DailyStock | null>(null);
 
   // Form state (managed manually for this simple UI)
@@ -176,6 +179,17 @@ export function DeliveriesPage() {
     if (!confirm('Fshi këtë dërgim?')) return;
     await api.delete(`/deliveries/${id}`);
     fetchDeliveries();
+  };
+
+  const handlePrint = async (delivery: Delivery, type: '80mm' | 'a4') => {
+    setPrintingId(delivery.id + type);
+    try {
+      const priceMap = await resolveDeliveryPrices(delivery);
+      if (type === '80mm') await printPreventivBT(delivery, priceMap);
+      else printPreventiv(delivery, priceMap);
+    } finally {
+      setPrintingId(null);
+    }
   };
 
   // ── products available today (from daily stock if open, else all) ─
@@ -377,11 +391,27 @@ export function DeliveriesPage() {
                           size="sm"
                           variant="outline"
                           className="gap-1.5"
-                          title="Printo Preventiv"
-                          onClick={() => printPreventiv(delivery)}
+                          title="Printo në printer termal 80mm (Bluetooth)"
+                          disabled={printingId === delivery.id + '80mm'}
+                          onClick={() => handlePrint(delivery, '80mm')}
                         >
-                          <Printer className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Preventiv</span>
+                          {printingId === delivery.id + '80mm'
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Printer className="h-3.5 w-3.5" />}
+                          <span className="hidden sm:inline">80mm</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5"
+                          title="Printo në printer A4"
+                          disabled={printingId === delivery.id + 'a4'}
+                          onClick={() => handlePrint(delivery, 'a4')}
+                        >
+                          {printingId === delivery.id + 'a4'
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Printer className="h-3.5 w-3.5" />}
+                          <span className="hidden sm:inline">A4</span>
                         </Button>
                         <Button
                           size="sm"
