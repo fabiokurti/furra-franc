@@ -334,117 +334,117 @@ export function DeliveriesPage() {
             const isUpdating = updatingId === delivery.id;
 
             return (
-              <Card key={delivery.id} className={delivery.status === 'COMPLETED' ? 'opacity-70' : ''}>
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <p className="font-semibold text-base">{delivery.client.name}</p>
-                        <Badge variant={cfg.badge} className="gap-1">
-                          <StatusIcon className="h-3 w-3" />
-                          {cfg.label}
+              <Card key={delivery.id} className={delivery.status === 'COMPLETED' ? 'opacity-75' : ''}>
+                <CardContent className="p-4">
+                  {/* Row 1: name + status badges + price */}
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-base leading-tight">{delivery.client.name}</p>
+                      <Badge variant={cfg.badge} className="gap-1 shrink-0">
+                        <StatusIcon className="h-3 w-3" />{cfg.label}
+                      </Badge>
+                      {delivery.status === 'COMPLETED' && (
+                        <Badge
+                          variant={delivery.isPaid ? 'default' : 'destructive'}
+                          className={`shrink-0 ${delivery.isPaid ? 'bg-green-600' : ''}`}
+                        >
+                          {delivery.isPaid ? 'Paguar' : 'Pa paguar'}
                         </Badge>
-                        {delivery.status === 'COMPLETED' && (
-                          <Badge
-                            variant={delivery.isPaid ? 'default' : 'destructive'}
-                            className={delivery.isPaid ? 'bg-green-600' : ''}
-                          >
-                            {delivery.isPaid ? 'Paguar' : 'Pa paguar'}
-                          </Badge>
-                        )}
-                      </div>
-                      {isAdmin && (
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Shpërndarësi: {delivery.createdBy.name}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                        {delivery.client.address && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5" />{delivery.client.address}
-                          </span>
-                        )}
-                        {delivery.client.phone && (
-                          <a href={`tel:${delivery.client.phone}`} className="flex items-center gap-1 hover:text-primary">
-                            <Phone className="h-3.5 w-3.5" />{delivery.client.phone}
-                          </a>
-                        )}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {delivery.items.map((item) => (
-                          <span key={item.id} className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium">
-                            {item.product.name}
-                            <span className="ml-1 font-bold text-primary">×{item.quantity}</span>
-                          </span>
-                        ))}
-                      </div>
-                      {delivery.notes && (
-                        <p className="mt-2 text-xs italic text-muted-foreground">📝 {delivery.notes}</p>
                       )}
                     </div>
-                    <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[220px]">
-                      {delivery.totalPrice !== undefined && (
-                        <span className="text-lg font-bold text-primary">{delivery.totalPrice.toFixed(0)} L</span>
-                      )}
-                      <div className="grid grid-cols-3 gap-1.5 w-full">
-                        <Button size="sm" variant="outline" className="gap-1.5"
-                          title="Printo 80mm (Bluetooth)"
-                          disabled={printingId === delivery.id + '80mm'}
-                          onClick={() => handlePrint(delivery, '80mm')}>
-                          {printingId === delivery.id + '80mm'
-                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            : <Printer className="h-3.5 w-3.5" />}
-                          80mm
+                    {delivery.totalPrice !== undefined && (
+                      <span className="text-base font-bold text-primary shrink-0">
+                        {delivery.totalPrice.toFixed(0)} L
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Row 2: meta info */}
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mb-2">
+                    {isAdmin && <span>Shp: {delivery.createdBy.name}</span>}
+                    {delivery.client.address && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />{delivery.client.address}
+                      </span>
+                    )}
+                    {delivery.client.phone && (
+                      <a href={`tel:${delivery.client.phone}`} className="flex items-center gap-1 hover:text-primary">
+                        <Phone className="h-3 w-3" />{delivery.client.phone}
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Row 3: items */}
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {delivery.items.map((item) => (
+                      <span key={item.id} className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">
+                        {item.product.name}<span className="ml-1 font-bold text-primary">×{item.quantity}</span>
+                      </span>
+                    ))}
+                  </div>
+
+                  {delivery.notes && (
+                    <p className="mb-2 text-xs italic text-muted-foreground">📝 {delivery.notes}</p>
+                  )}
+
+                  {/* Row 4: action buttons — horizontal wrap */}
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8"
+                      title="Printo 80mm (Bluetooth)"
+                      disabled={printingId === delivery.id + '80mm'}
+                      onClick={() => handlePrint(delivery, '80mm')}>
+                      {printingId === delivery.id + '80mm'
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Printer className="h-3.5 w-3.5" />}
+                      80mm
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8"
+                      title="Printo A4"
+                      disabled={printingId === delivery.id + 'a4'}
+                      onClick={() => handlePrint(delivery, 'a4')}>
+                      {printingId === delivery.id + 'a4'
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Printer className="h-3.5 w-3.5" />}
+                      A4
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8"
+                      onClick={() => openEdit(delivery)}>
+                      <Pencil className="h-3.5 w-3.5" /> Ndrysho
+                    </Button>
+                    {delivery.status === 'PENDING' && (
+                      <>
+                        <Button size="sm" className="gap-1.5 h-8 bg-green-600 hover:bg-green-700"
+                          onClick={() => markStatus(delivery.id, 'COMPLETED')} disabled={isUpdating}>
+                          {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                          Kryer
                         </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5"
-                          title="Printo A4"
-                          disabled={printingId === delivery.id + 'a4'}
-                          onClick={() => handlePrint(delivery, 'a4')}>
-                          {printingId === delivery.id + 'a4'
-                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            : <Printer className="h-3.5 w-3.5" />}
-                          A4
+                        <Button size="sm" variant="outline"
+                          className="gap-1.5 h-8 text-destructive border-destructive hover:bg-destructive/10"
+                          onClick={() => markStatus(delivery.id, 'CANCELLED')} disabled={isUpdating}>
+                          <XCircle className="h-3.5 w-3.5" /> Anulo
                         </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5"
-                          onClick={() => navigate(`/deliveries/${delivery.id}`)}>
-                          Detajet <ChevronRight className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5"
-                          onClick={() => openEdit(delivery)}>
-                          <Pencil className="h-3.5 w-3.5" /> Ndrysho
-                        </Button>
-                        {delivery.status === 'PENDING' && (
-                          <>
-                            <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700"
-                              onClick={() => markStatus(delivery.id, 'COMPLETED')} disabled={isUpdating}>
-                              {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                              Kryer
-                            </Button>
-                            <Button size="sm" variant="outline"
-                              className="gap-1.5 text-destructive border-destructive hover:bg-destructive/10"
-                              onClick={() => markStatus(delivery.id, 'CANCELLED')} disabled={isUpdating}>
-                              <XCircle className="h-3.5 w-3.5" /> Anulo
-                            </Button>
-                          </>
-                        )}
-                        {delivery.status === 'COMPLETED' && (
-                          <Button size="sm"
-                            variant={delivery.isPaid ? 'outline' : 'default'}
-                            className={`gap-1.5 ${delivery.isPaid ? '' : 'bg-green-600 hover:bg-green-700'}`}
-                            onClick={() => togglePaid(delivery.id)} disabled={isUpdating}>
-                            <Banknote className="h-3.5 w-3.5" />
-                            {delivery.isPaid ? 'Pa paguar' : 'Paguar'}
-                          </Button>
-                        )}
-                        {isAdmin && (
-                          <Button size="sm" variant="ghost"
-                            className="text-destructive hover:text-destructive gap-1.5"
-                            onClick={() => handleDelete(delivery.id)}>
-                            <Trash2 className="h-3.5 w-3.5" /> Fshi
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                      </>
+                    )}
+                    {delivery.status === 'COMPLETED' && (
+                      <Button size="sm"
+                        variant={delivery.isPaid ? 'outline' : 'default'}
+                        className={`gap-1.5 h-8 ${delivery.isPaid ? '' : 'bg-green-600 hover:bg-green-700'}`}
+                        onClick={() => togglePaid(delivery.id)} disabled={isUpdating}>
+                        <Banknote className="h-3.5 w-3.5" />
+                        {delivery.isPaid ? 'Pa paguar' : 'Paguar'}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8"
+                      onClick={() => navigate(`/deliveries/${delivery.id}`)}>
+                      Detajet <ChevronRight className="h-3.5 w-3.5" />
+                    </Button>
+                    {isAdmin && (
+                      <Button size="sm" variant="ghost"
+                        className="h-8 text-destructive hover:text-destructive gap-1.5"
+                        onClick={() => handleDelete(delivery.id)}>
+                        <Trash2 className="h-3.5 w-3.5" /> Fshi
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

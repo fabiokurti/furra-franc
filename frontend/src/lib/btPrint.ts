@@ -147,7 +147,6 @@ function buildClientStatement(
   client: Pick<Client, 'id' | 'name' | 'address' | 'phone'>,
   deliveries: Delivery[],
   filterLabel: string,
-  priceMap: Record<string, number>,
 ): Uint8Array {
   const now  = new Date();
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -167,18 +166,12 @@ function buildClientStatement(
   for (const [dateLabel, items] of Object.entries(grouped)) {
     bodyParts.push(cmd(ESC, 0x45, 0x01), row(dateLabel), cmd(ESC, 0x45, 0x00));
     for (const d of items) {
-      let deliveryTotal = 0;
+      const total = d.totalPrice ?? 0;
+      grandTotal += total;
       for (const i of d.items) {
-        const price     = priceMap[i.productId] ?? 0;
-        const lineTotal = i.quantity * price;
-        deliveryTotal  += lineTotal;
-        bodyParts.push(
-          row(i.product.name),
-          lr(`  ${i.quantity} x ${price} L`, `${lineTotal} L`),
-        );
+        bodyParts.push(row(`  ${i.product.name} x${i.quantity}`));
       }
-      grandTotal += deliveryTotal;
-      bodyParts.push(lr('  Totali dergeses:', `${deliveryTotal} L`), nl());
+      bodyParts.push(lr('  Totali:', `${total.toFixed(0)} L`), nl());
     }
     bodyParts.push(sep());
   }
@@ -213,13 +206,12 @@ export async function printClientStatementBT(
   client: Pick<Client, 'id' | 'name' | 'address' | 'phone'>,
   deliveries: Delivery[],
   filterLabel: string,
-  priceMap: Record<string, number>,
 ): Promise<void> {
   const conn = await bleConnect();
   if (!conn) return;
   const { device, writeChar } = conn;
   try {
-    await bleWrite(writeChar, buildClientStatement(client, deliveries, filterLabel, priceMap));
+    await bleWrite(writeChar, buildClientStatement(client, deliveries, filterLabel));
   } catch (e: unknown) {
     alert('Gabim gjate printimit: ' + (e as Error).message);
   } finally {

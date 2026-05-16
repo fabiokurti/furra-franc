@@ -98,7 +98,6 @@ export function printClientStatement(
   client: Pick<Client, 'id' | 'name' | 'address' | 'phone'>,
   deliveries: Delivery[],
   filterLabel: string,
-  priceMap: Record<string, number>,
 ) {
   const now  = new Date();
   const date = formatDateAL(now, true);
@@ -117,23 +116,12 @@ export function printClientStatement(
   let grandTotal = 0;
   let rows = '';
   for (const [dateLabel, items] of Object.entries(grouped)) {
-    rows += `<tr class="date-row"><td colspan="4">${dateLabel}</td></tr>`;
+    rows += `<tr class="date-row"><td colspan="2">${dateLabel}</td></tr>`;
     for (const d of items) {
-      let deliveryTotal = 0;
-      for (const i of d.items) {
-        const price     = priceMap[i.productId] ?? 0;
-        const lineTotal = i.quantity * price;
-        deliveryTotal += lineTotal;
-        rows += `
-          <tr>
-            <td>${i.product.name}</td>
-            <td style="text-align:center">${i.quantity}</td>
-            <td style="text-align:right">${price} L</td>
-            <td style="text-align:right;font-weight:bold">${lineTotal} L</td>
-          </tr>`;
-      }
-      grandTotal += deliveryTotal;
-      rows += `<tr class="subtotal-row"><td colspan="3">Totali dergeses</td><td style="text-align:right">${deliveryTotal} L</td></tr>`;
+      const total = d.totalPrice ?? 0;
+      grandTotal += total;
+      const itemsList = d.items.map((i) => `${i.product.name} &#215;${i.quantity}`).join(', ');
+      rows += `<tr><td>${itemsList}</td><td style="text-align:right;font-weight:bold;white-space:nowrap">${total.toFixed(0)} L</td></tr>`;
     }
   }
 
@@ -153,11 +141,9 @@ export function printClientStatement(
     .sep2{border-top:2px solid #000;margin:6px 0}
     table{width:100%;border-collapse:collapse;margin-top:4px}
     th{text-align:left;border-bottom:2px solid #000;padding:3px 4px;font-size:10pt}
-    th:not(:first-child){text-align:right}
-    th:nth-child(2){text-align:center}
+    th:last-child{text-align:right}
     td{padding:3px 4px;border-bottom:1px dashed #eee;vertical-align:top}
     .date-row td{background:#f0f0f0;font-weight:bold;padding:5px 4px;border-bottom:none;font-size:10pt;border-top:1px solid #ccc}
-    .subtotal-row td{background:#fafafa;font-style:italic;font-size:9.5pt;border-bottom:1px solid #ccc}
     .total-row td{border-top:2px solid #000;border-bottom:none;padding-top:6px;font-weight:bold;font-size:13pt}
     @page{margin:8mm}
     @media print{body{padding:0}}
@@ -174,17 +160,12 @@ export function printClientStatement(
   <div class="sep"></div>
   <table>
     <thead>
-      <tr>
-        <th>Produkti</th>
-        <th style="text-align:center">Sasia</th>
-        <th style="text-align:right">&#215; Cmimi</th>
-        <th style="text-align:right">= Totali</th>
-      </tr>
+      <tr><th>Data / Produktet</th><th style="text-align:right">Totali</th></tr>
     </thead>
     <tbody>${rows}</tbody>
     <tfoot>
       <tr class="total-row">
-        <td colspan="3">TOTAL</td>
+        <td>TOTAL</td>
         <td style="text-align:right">${grandTotal.toFixed(0)} L</td>
       </tr>
     </tfoot>

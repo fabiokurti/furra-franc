@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import api from '@/lib/api';
 import { printClientStatement } from '@/lib/printPreventiv';
 import { printClientStatementBT } from '@/lib/btPrint';
-import { resolveClientPriceMap } from '@/lib/deliveryPrices';
 import type { Client, Delivery } from '@/types';
 
 type FilterMode = 'unpaid' | 'week' | 'month' | 'all';
@@ -74,10 +73,9 @@ export function ClientDetailPage() {
     if (!client || filteredDeliveries.length === 0) return;
     setPrintingType(type);
     try {
-      const priceMap = await resolveClientPriceMap(client, filteredDeliveries);
-      const label    = FILTER_LABELS[filterMode];
-      if (type === '80mm') await printClientStatementBT(client, filteredDeliveries, label, priceMap);
-      else printClientStatement(client, filteredDeliveries, label, priceMap);
+      const label = FILTER_LABELS[filterMode];
+      if (type === '80mm') await printClientStatementBT(client, filteredDeliveries, label);
+      else printClientStatement(client, filteredDeliveries, label);
       if (filterMode === 'unpaid') setShowAfterPrintConfirm(true);
     } finally {
       setPrintingType(null);
