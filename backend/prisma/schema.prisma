@@ -20,6 +20,7 @@ model User {
   orders          Order[]
   assignedClients Client[]       @relation("StaffClients")
   deliveries      Delivery[]
+  returns         Return[]
   shopProducts    ShopProduct[]
   shopSales       ShopSale[]
 
@@ -40,6 +41,7 @@ model Product {
   updatedAt       DateTime             @updatedAt
   orderItems      OrderItem[]
   deliveryItems   DeliveryItem[]
+  returnItems     ReturnItem[]
   clientPrices    ClientProductPrice[]
   dailyStockItems DailyStockItem[]
 
@@ -87,6 +89,7 @@ model Client {
   staffId     String
   businessUser User?               @relation("BusinessAccount")
   deliveries  Delivery[]
+  returns     Return[]
   prices      ClientProductPrice[]
 
   @@map("clients")
@@ -215,4 +218,38 @@ enum DeliveryStatus {
   PENDING
   COMPLETED
   CANCELLED
+}
+
+enum ReturnStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Return {
+  id         String       @id @default(uuid())
+  status     ReturnStatus @default(PENDING)
+  isPaid     Boolean      @default(false)
+  notes      String?
+  returnDate DateTime     @default(now())
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  client     Client       @relation(fields: [clientId], references: [id])
+  clientId   String
+  createdBy  User         @relation(fields: [staffId], references: [id])
+  staffId    String
+  items      ReturnItem[]
+
+  @@map("returns")
+}
+
+model ReturnItem {
+  id        String  @id @default(uuid())
+  quantity  Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  return    Return  @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  returnId  String
+
+  @@map("return_items")
 }

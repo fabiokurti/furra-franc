@@ -8,6 +8,7 @@ import orderRoutes from './routes/order.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import clientRoutes from './routes/client.routes';
 import deliveryRoutes from './routes/delivery.routes';
+import returnRoutes from './routes/return.routes';
 import dailyStockRoutes from './routes/dailyStock.routes';
 import shopRoutes from './routes/shop.routes';
 import { errorHandler } from './middleware/error.middleware';
@@ -28,6 +29,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/deliveries', deliveryRoutes);
+app.use('/api/kthimet', returnRoutes);
 app.use('/api/daily-stock', dailyStockRoutes);
 app.use('/api/shop', shopRoutes);
 

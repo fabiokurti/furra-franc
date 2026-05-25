@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck, Store, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck, Store, BarChart3, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 const adminNavItems = [
   { to: '/dashboard',      label: 'Paneli',          icon: LayoutDashboard },
   { to: '/deliveries',     label: 'Dërgimet',         icon: Truck           },
+  { to: '/kthimet',        label: 'Kthimet',          icon: RotateCcw       },
   { to: '/clients',        label: 'Klientët',         icon: Users           },
   { to: '/daily-stock',    label: 'Prodhimi Ditor',   icon: PackageCheck    },
   { to: '/business-sales', label: 'Shitjet Biznese',  icon: BarChart3       },
@@ -17,8 +18,9 @@ const adminNavItems = [
 ];
 
 const staffNavItems = [
-  { to: '/deliveries', label: 'Dërgimet', icon: Truck  },
-  { to: '/clients',    label: 'Klientët', icon: Users  },
+  { to: '/deliveries', label: 'Dërgimet', icon: Truck      },
+  { to: '/kthimet',    label: 'Kthimet',  icon: RotateCcw  },
+  { to: '/clients',    label: 'Klientët', icon: Users      },
 ];
 
 const businessNavItems = [

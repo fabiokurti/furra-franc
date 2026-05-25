@@ -141,6 +141,31 @@ export interface DailyStock {
   updatedAt: string;
 }
 
+export type ReturnStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+
+export interface ReturnItem {
+  id: string;
+  quantity: number;
+  productId: string;
+  product: Pick<Product, 'id' | 'name' | 'category'>;
+}
+
+export interface Return {
+  id: string;
+  status: ReturnStatus;
+  isPaid: boolean;
+  notes?: string;
+  returnDate: string;
+  createdAt: string;
+  updatedAt: string;
+  clientId: string;
+  client: Pick<Client, 'id' | 'name' | 'address' | 'phone'>;
+  staffId: string;
+  createdBy: Pick<User, 'id' | 'name'>;
+  items: ReturnItem[];
+  totalPrice?: number;
+}
+
 export interface DashboardStats {
   totalOrders: number;
   pendingOrders: number;

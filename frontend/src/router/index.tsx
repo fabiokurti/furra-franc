@@ -9,6 +9,8 @@ import { OrdersPage } from '@/pages/OrdersPage';
 import { ClientsPage } from '@/pages/ClientsPage';
 import { DeliveriesPage } from '@/pages/DeliveriesPage';
 import { DeliveryDetailPage } from '@/pages/DeliveryDetailPage';
+import { KthimetPage } from '@/pages/KthimetPage';
+import { KthimetDetailPage } from '@/pages/KthimetDetailPage';
 import { StaffPage } from '@/pages/StaffPage';
 import { DailyStockPage } from '@/pages/DailyStockPage';
 import { ShopPage } from '@/pages/ShopPage';
@@ -45,6 +47,8 @@ export const router = createBrowserRouter([
           { path: '/clients', element: <ClientsPage /> },
           { path: '/deliveries', element: <DeliveriesPage /> },
           { path: '/deliveries/:id', element: <DeliveryDetailPage /> },
+          { path: '/kthimet', element: <KthimetPage /> },
+          { path: '/kthimet/:id', element: <KthimetDetailPage /> },
           { path: '/staff', element: <StaffPage /> },
           { path: '/daily-stock', element: <DailyStockPage /> },
           { path: '/shop', element: <ShopPage /> },
