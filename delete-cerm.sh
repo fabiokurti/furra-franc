@@ -7,7 +7,10 @@ async function run() {
   for (const email of ['cermsekt@furrafranc.com', 'cermsip@furrafranc.com']) {
     const u = await p.user.findUnique({ where: { email }, select: { id: true, clientId: true } });
     if (!u) { console.log('Not found:', email); continue; }
-    await p.user.delete({ where: { email } });
+    await p.shopSaleItem.deleteMany({ where: { shopSale: { userId: u.id } } });
+    await p.shopSale.deleteMany({ where: { userId: u.id } });
+    await p.shopProduct.deleteMany({ where: { userId: u.id } });
+    await p.user.delete({ where: { id: u.id } });
     if (u.clientId) await p.client.delete({ where: { id: u.clientId } }).catch(() => {});
     console.log('Deleted:', email);
   }
