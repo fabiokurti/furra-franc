@@ -12,7 +12,12 @@ echo "=== Installing & building frontend ==="
 cd $APP/frontend
 npm install
 npm run build
-cp -r dist/* $WEB/
+if [ -d "$WEB" ]; then
+  cp -r dist/* $WEB/
+  echo "Copied to $WEB"
+else
+  echo "Serving from dist/ directly (no copy needed)"
+fi
 
 echo "=== Installing & building backend ==="
 cd $APP/backend
