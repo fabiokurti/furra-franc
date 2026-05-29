@@ -3,6 +3,7 @@ import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 import {
   getShopProducts, createShopProduct, updateShopProduct, deleteShopProduct,
   getShopSales, createShopSale, deleteShopSale, getAllShopSalesAdmin, getMyDeliveries,
+  getBusinessUsers,
 } from '../controllers/shop.controller';
 
 const router = Router();
@@ -16,6 +17,7 @@ router.get('/sales', authenticate, getShopSales);
 router.post('/sales', authenticate, createShopSale);
 router.delete('/sales/:id', authenticate, deleteShopSale);
 router.get('/sales/all', authenticate, requireAdmin, getAllShopSalesAdmin);
+router.get('/businesses', authenticate, requireAdmin, getBusinessUsers);
 router.get('/my-deliveries', authenticate, getMyDeliveries);
 
 export default router;

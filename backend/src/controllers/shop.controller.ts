@@ -94,6 +94,7 @@ export async function createShopSale(req: Request, res: Response): Promise<void>
     },
     include: {
       items: { include: { shopProduct: { select: { id: true, name: true } } } },
+      user: { select: { id: true, name: true, client: { select: { id: true, name: true } } } },
     },
   });
   res.status(201).json({ sale });
@@ -138,7 +139,6 @@ export async function getMyDeliveries(req: Request, res: Response): Promise<void
   res.json({ deliveries });
 }
 
-// ── Create business user account ───────────────────────────────────
 export async function getAllShopSalesAdmin(req: Request, res: Response): Promise<void> {
   const sales = await prisma.shopSale.findMany({
     include: {
@@ -146,7 +146,27 @@ export async function getAllShopSalesAdmin(req: Request, res: Response): Promise
       items: { include: { shopProduct: { select: { id: true, name: true } } } },
     },
     orderBy: { saleDate: 'desc' },
-    take: 100,
+    take: 500,
   });
   res.json({ sales });
+}
+
+export async function getBusinessUsers(req: Request, res: Response): Promise<void> {
+  const businesses = await prisma.user.findMany({
+    where: { role: 'BUSINESS' },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+      client: { select: { id: true, name: true, phone: true, address: true } },
+      shopProducts: {
+        where: { isActive: true },
+        select: { id: true, name: true, price: true },
+        orderBy: { name: 'asc' },
+      },
+    },
+    orderBy: { name: 'asc' },
+  });
+  res.json({ businesses });
 }

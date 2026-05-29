@@ -1,4 +1,4 @@
-import type { Client, Delivery } from '@/types';
+import type { Client, Delivery, ShopSale } from '@/types';
 import { formatDateAL } from './date';
 
 // ── ESC/POS constants ──────────────────────────────────────────────────────
@@ -228,6 +228,72 @@ export async function printPreventivBT(
   const { device, writeChar } = conn;
   try {
     await bleWrite(writeChar, buildReceipt(delivery, priceMap));
+  } catch (e: unknown) {
+    alert('Gabim gjate printimit: ' + (e as Error).message);
+  } finally {
+    device.gatt.disconnect();
+  }
+}
+
+// ── 80 mm shop receipt (W = 48) ────────────────────────────────────────────
+const W80 = 48;
+
+function lr80(left: string, right: string): Uint8Array {
+  const l = safe(left).substring(0, W80 - right.length - 1);
+  const r = safe(right);
+  return enc(l + ' '.repeat(Math.max(1, W80 - l.length - r.length)) + r + '\n');
+}
+
+function buildShopReceipt(sale: ShopSale): Uint8Array {
+  const date = formatDateAL(sale.saleDate, true);
+  const now  = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const shopName = sale.user.client?.name ?? sale.user.name;
+
+  const itemParts: Uint8Array[] = [];
+  let total = 0;
+  for (const item of sale.items) {
+    const lineTotal = item.quantity * Number(item.unitPrice);
+    total += lineTotal;
+    itemParts.push(
+      row(item.shopProduct.name),
+      lr80(`  ${item.quantity} x ${Number(item.unitPrice).toFixed(0)} L`, `${lineTotal.toFixed(0)} L`),
+    );
+  }
+
+  return merge(
+    cmd(ESC, 0x40),
+    cmd(ESC, 0x61, 0x01), cmd(GS, 0x21, 0x11), cmd(ESC, 0x45, 0x01),
+    row('FURRA FRANC'),
+    cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
+    row(safe(shopName)),
+    nl(),
+    enc('='.repeat(W80) + '\n'),
+    cmd(ESC, 0x61, 0x00),
+    lr80(`Data: ${date}`, `Ora: ${time}`),
+    enc('-'.repeat(W80) + '\n'),
+    lr80('Produkti', 'Total'),
+    enc('-'.repeat(W80) + '\n'),
+    ...itemParts,
+    enc('-'.repeat(W80) + '\n'),
+    cmd(ESC, 0x45, 0x01), cmd(GS, 0x21, 0x11),
+    lr80('TOTAL:', `${total.toFixed(0)} L`),
+    cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
+    ...(sale.notes ? [enc('-'.repeat(W80) + '\n'), row(`Note: ${sale.notes}`)] : []),
+    enc('='.repeat(W80) + '\n'),
+    cmd(ESC, 0x61, 0x01),
+    row('Furra Franc - Faleminderit!'),
+    cmd(ESC, 0x64, 0x08),
+    cmd(GS, 0x56, 0x42, 0x00),
+  );
+}
+
+export async function printShopReceiptBT(sale: ShopSale): Promise<void> {
+  const conn = await bleConnect();
+  if (!conn) return;
+  const { device, writeChar } = conn;
+  try {
+    await bleWrite(writeChar, buildShopReceipt(sale));
   } catch (e: unknown) {
     alert('Gabim gjate printimit: ' + (e as Error).message);
   } finally {

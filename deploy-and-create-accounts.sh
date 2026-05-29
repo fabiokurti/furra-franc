@@ -20,6 +20,10 @@ npm run build
 echo "=== Copying frontend build ==="
 cp -r dist/* /var/www/furrafranc/
 
+echo "=== Building backend ==="
+cd /root/furra-franc/backend
+npm run build
+
 echo "=== Restarting backend ==="
 pm2 restart furra-backend || pm2 start dist/index.js --name furra-backend
 
@@ -37,8 +41,10 @@ async function main() {
   const adminId = admin.id;
 
   const accounts = [
-    { name: 'Dyqani Cerm Sektor', email: 'cermsekt@furrafranc.com', password: 'Cerm2024', role: 'BUSINESS', clientName: 'Dyqani Cerm Sektor' },
-    { name: 'Dyqani Cerm Siperme', email: 'cermsip@furrafranc.com', password: 'Cerm2024', role: 'BUSINESS', clientName: 'Dyqani Cerm Siperme' },
+    { name: 'Dyqani Cerm Sektor',  email: 'cermsekt@furrafranc.com', password: 'Cerm2024',      role: 'BUSINESS', clientName: 'Dyqani Cerm Sektor'  },
+    { name: 'Dyqani Cerm Siperme', email: 'cermsip@furrafranc.com',  password: 'Cerm2024',      role: 'BUSINESS', clientName: 'Dyqani Cerm Siperme' },
+    { name: 'Dyqani Sektor',       email: 'sektor@furrafranc.com',   password: 'furrafranc',    role: 'BUSINESS', clientName: 'Dyqani Sektor'        },
+    { name: 'Dyqani 2',            email: 'dyqani2@furrafranc.com',  password: 'furrafranc',    role: 'BUSINESS', clientName: 'Dyqani 2'             },
     { name: 'Xheviti',   email: 'xheviti@furrafranc.com',  password: 'Xheviti2024',  role: 'ADMIN'    },
     { name: 'Xhulio',    email: 'xhulio@furrafranc.com',   password: 'Xhulio2024',   role: 'STAFF'    },
     { name: 'Mateo',     email: 'mateo@furrafranc.com',    password: 'Mateo2024',    role: 'STAFF'    },
