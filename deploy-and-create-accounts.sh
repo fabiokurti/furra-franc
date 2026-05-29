@@ -40,8 +40,6 @@ async function main() {
   const adminId = admin.id;
 
   const accounts = [
-    { name: 'Dyqani Cerm Sektor',  email: 'cermsekt@furrafranc.com', password: 'Cerm2024',   role: 'BUSINESS', clientName: 'Dyqani Cerm Sektor'  },
-    { name: 'Dyqani Cerm Siperme', email: 'cermsip@furrafranc.com',  password: 'Cerm2024',   role: 'BUSINESS', clientName: 'Dyqani Cerm Siperme' },
     { name: 'Dyqani Sektor',       email: 'sektor@furrafranc.com',   password: 'furrafranc', role: 'BUSINESS', clientName: 'Dyqani Sektor'        },
     { name: 'Dyqani 2',            email: 'dyqani2@furrafranc.com',  password: 'furrafranc', role: 'BUSINESS', clientName: 'Dyqani 2'             },
     { name: 'Xheviti',  email: 'xheviti@furrafranc.com',  password: 'Xheviti2024',  role: 'ADMIN' },
