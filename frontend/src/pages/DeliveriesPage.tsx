@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays, Pencil, Printer } from 'lucide-react';
+import { Plus, Trash2, Loader2, MapPin, Phone, CheckCircle2, Clock, XCircle, Minus, Banknote, ChevronRight, CalendarDays, Pencil, Printer, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -221,10 +221,26 @@ export function DeliveriesPage() {
           <h1 className="text-2xl font-bold">Dërgimet e Sotme</h1>
           <p className="text-muted-foreground capitalize">{formatDate(today)}</p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Krijo dërgim
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => {
+              const params = new URLSearchParams();
+              params.set('date', dateFilter);
+              if (staffFilter !== 'ALL') params.set('staffId', staffFilter);
+              if (clientFilter !== 'ALL') params.set('clientId', clientFilter);
+              navigate(`/deliveries/summary?${params.toString()}`);
+            }}
+          >
+            <BarChart2 className="h-4 w-4" />
+            Totali Artikujve
+          </Button>
+          <Button onClick={openCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Krijo dërgim
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}

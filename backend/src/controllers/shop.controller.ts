@@ -59,10 +59,17 @@ export async function getShopSales(req: Request, res: Response): Promise<void> {
     ? {}
     : { userId };
 
-  const today = new Date();
-  const start = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-  const end = new Date(start); end.setUTCDate(end.getUTCDate() + 1);
-  const dateFilter = req.query.date === 'all' ? {} : { saleDate: { gte: start, lt: end } };
+  let dateFilter: object = {};
+  if (req.query.dateFrom || req.query.dateTo) {
+    const gte = req.query.dateFrom ? new Date(String(req.query.dateFrom)) : undefined;
+    const lte = req.query.dateTo   ? new Date(String(req.query.dateTo) + 'T23:59:59.999Z') : undefined;
+    dateFilter = { saleDate: { ...(gte ? { gte } : {}), ...(lte ? { lte } : {}) } };
+  } else if (req.query.date !== 'all') {
+    const today = new Date();
+    const start = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    const end = new Date(start); end.setUTCDate(end.getUTCDate() + 1);
+    dateFilter = { saleDate: { gte: start, lt: end } };
+  }
 
   const sales = await prisma.shopSale.findMany({
     where: { ...where, ...dateFilter },

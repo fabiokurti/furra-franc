@@ -9,12 +9,14 @@ import { OrdersPage } from '@/pages/OrdersPage';
 import { ClientsPage } from '@/pages/ClientsPage';
 import { DeliveriesPage } from '@/pages/DeliveriesPage';
 import { DeliveryDetailPage } from '@/pages/DeliveryDetailPage';
+import { DeliverySummaryPage } from '@/pages/DeliverySummaryPage';
 import { KthimetPage } from '@/pages/KthimetPage';
 import { KthimetDetailPage } from '@/pages/KthimetDetailPage';
 import { StaffPage } from '@/pages/StaffPage';
 import { DailyStockPage } from '@/pages/DailyStockPage';
 import { ShopPage } from '@/pages/ShopPage';
 import { BusinessSalesPage } from '@/pages/BusinessSalesPage';
+import { BusinessDetailPage } from '@/pages/BusinessDetailPage';
 import { ClientDetailPage } from '@/pages/ClientDetailPage';
 import { StaffDetailPage } from '@/pages/StaffDetailPage';
 import { useAuth } from '@/context/AuthContext';
@@ -46,6 +48,7 @@ export const router = createBrowserRouter([
           { path: '/orders', element: <OrdersPage /> },
           { path: '/clients', element: <ClientsPage /> },
           { path: '/deliveries', element: <DeliveriesPage /> },
+          { path: '/deliveries/summary', element: <DeliverySummaryPage /> },
           { path: '/deliveries/:id', element: <DeliveryDetailPage /> },
           { path: '/kthimet', element: <KthimetPage /> },
           { path: '/kthimet/:id', element: <KthimetDetailPage /> },
@@ -53,6 +56,7 @@ export const router = createBrowserRouter([
           { path: '/daily-stock', element: <DailyStockPage /> },
           { path: '/shop', element: <ShopPage /> },
           { path: '/business-sales', element: <BusinessSalesPage /> },
+          { path: '/business-sales/:userId', element: <BusinessDetailPage /> },
           { path: '/clients/:id', element: <ClientDetailPage /> },
           { path: '/staff/:id', element: <StaffDetailPage /> },
         ],
