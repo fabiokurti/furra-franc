@@ -197,3 +197,41 @@ export async function deleteDay(req: Request, res: Response): Promise<void> {
   await prisma.dailyStock.delete({ where: { id } });
   res.status(204).send();
 }
+
+export async function removeItem(req: Request, res: Response): Promise<void> {
+  const { id, itemId } = req.params;
+
+  const entry = await prisma.dailyStock.findUnique({ where: { id } });
+  if (!entry) { res.status(404).json({ message: 'Nuk u gjet' }); return; }
+  if (entry.status === 'CLOSED') { res.status(409).json({ message: 'Prodhimi është mbyllur' }); return; }
+
+  const item = await prisma.dailyStockItem.findFirst({ where: { id: itemId, dailyStockId: id } });
+  if (!item) { res.status(404).json({ message: 'Produkti nuk u gjet' }); return; }
+
+  await prisma.dailyStockItem.delete({ where: { id: itemId } });
+
+  const full = await fetchEntryWithDelivered(id);
+  res.json({ entry: full });
+}
+
+export async function editItem(req: Request, res: Response): Promise<void> {
+  const { id, itemId } = req.params;
+  const { quantity } = req.body as { quantity: number };
+
+  if (typeof quantity !== 'number' || quantity < 0) {
+    res.status(400).json({ message: 'Sasia duhet të jetë numër pozitiv' });
+    return;
+  }
+
+  const entry = await prisma.dailyStock.findUnique({ where: { id } });
+  if (!entry) { res.status(404).json({ message: 'Nuk u gjet' }); return; }
+  if (entry.status === 'CLOSED') { res.status(409).json({ message: 'Prodhimi është mbyllur' }); return; }
+
+  const item = await prisma.dailyStockItem.findFirst({ where: { id: itemId, dailyStockId: id } });
+  if (!item) { res.status(404).json({ message: 'Produkti nuk u gjet' }); return; }
+
+  await prisma.dailyStockItem.update({ where: { id: itemId }, data: { quantity } });
+
+  const full = await fetchEntryWithDelivered(id);
+  res.json({ entry: full });
+}

@@ -1,5 +1,5 @@
 import { formatDateAL } from './date';
-import type { Client, Delivery } from '@/types';
+import type { Client, Delivery, ShopSale } from '@/types';
 
 export function printPreventiv(
   delivery: Delivery & { totalPrice?: number },
@@ -176,6 +176,81 @@ export function printClientStatement(
 </html>`;
 
   const win = window.open('', '_blank', 'width=640,height=750,toolbar=0,scrollbars=0,status=0');
+  if (!win) { alert('Lejo dritaret pop-up per te printuar.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); win.close(); }, 400);
+}
+
+export function printShopReceiptUSB(sale: ShopSale) {
+  const date     = formatDateAL(sale.saleDate, true);
+  const now      = new Date();
+  const time     = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const shopName = sale.user.client?.name ?? sale.user.name;
+
+  let total = 0;
+  const itemRows = sale.items.map((item) => {
+    const lineTotal = item.quantity * Number(item.unitPrice);
+    total += lineTotal;
+    return `<tr>
+      <td>${item.shopProduct.name}</td>
+      <td class="c">${item.quantity}</td>
+      <td class="r">${Number(item.unitPrice).toFixed(0)} L</td>
+      <td class="r b">${lineTotal.toFixed(0)} L</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8">
+  <title>Fature - ${shopName}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    @page{size:80mm auto;margin:3mm 2mm}
+    body{font-family:'Courier New',Courier,monospace;font-size:8.5pt;color:#000;width:76mm}
+    .c{text-align:center} .r{text-align:right} .b{font-weight:bold}
+    .lg{font-size:13pt} .sm{font-size:7.5pt}
+    .sep{border-top:1px dashed #000;margin:4px 0}
+    .sep2{border-top:2px solid #000;margin:5px 0}
+    table{width:100%;border-collapse:collapse;margin-top:3px}
+    th{text-align:left;border-bottom:1px solid #000;padding:2px;font-size:8pt}
+    td{padding:2px;border-bottom:1px dashed #ccc}
+    .total-row td{border-top:2px solid #000;border-bottom:none;padding-top:5px;font-weight:bold;font-size:10pt}
+    @media print{body{padding:0}}
+  </style>
+</head>
+<body>
+  <div class="c b lg">FURRA FRANC</div>
+  <div class="c sm">${shopName}</div>
+  <div class="sep2"></div>
+  <div class="sm">${date} &nbsp;&nbsp; Ora: ${time}</div>
+  <div class="sep"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Produkti</th>
+        <th class="c">Sas.</th>
+        <th class="r">Cmimi</th>
+        <th class="r">Total</th>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td colspan="3">TOTAL</td>
+        <td class="r">${total.toFixed(0)} L</td>
+      </tr>
+    </tfoot>
+  </table>
+  ${sale.notes ? `<div class="sep"></div><div class="sm">${sale.notes}</div>` : ''}
+  <div class="sep2"></div>
+  <div class="c sm">Furra Franc - Faleminderit!</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=320,height=600,toolbar=0,scrollbars=0,status=0');
   if (!win) { alert('Lejo dritaret pop-up per te printuar.'); return; }
   win.document.write(html);
   win.document.close();

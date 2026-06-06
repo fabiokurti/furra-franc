@@ -12,7 +12,7 @@ import api from '@/lib/api';
 import type { Delivery, Client, ClientProductPrice, Product, User as UserType, DailyStock } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
-import { todayLocalISO, formatDateAL } from '@/lib/date';
+import { todayLocalISO, formatDateAL, formatDateTimeAL } from '@/lib/date';
 import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
@@ -379,6 +379,11 @@ export function DeliveriesPage() {
                         >
                           {delivery.isPaid ? 'Paguar' : 'Pa paguar'}
                         </Badge>
+                      )}
+                      {delivery.isPaid && delivery.paidAt && (
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          💰 {formatDateTimeAL(delivery.paidAt)}
+                        </span>
                       )}
                     </div>
                     {delivery.totalPrice !== undefined && (

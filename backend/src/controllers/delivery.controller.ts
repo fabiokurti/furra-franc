@@ -202,9 +202,10 @@ export async function toggleDeliveryPaid(req: Request, res: Response): Promise<v
     return;
   }
 
+  const nowPaid = !delivery.isPaid;
   const updated = await prisma.delivery.update({
     where: { id: req.params.id },
-    data: { isPaid: !delivery.isPaid },
+    data: { isPaid: nowPaid, paidAt: nowPaid ? new Date() : null },
     include: deliveryInclude,
   });
 

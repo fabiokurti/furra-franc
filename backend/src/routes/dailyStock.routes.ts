@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAll, getToday, createToday, addItems, closeDay, reopenDay, deleteDay } from '../controllers/dailyStock.controller';
+import { getAll, getToday, createToday, addItems, closeDay, reopenDay, deleteDay, removeItem, editItem } from '../controllers/dailyStock.controller';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -8,8 +8,10 @@ router.get('/history', authenticate, requireAdmin, getAll);
 router.get('/today', authenticate, getToday);
 router.post('/', authenticate, requireAdmin, createToday);
 router.patch('/:id/add-items', authenticate, requireAdmin, addItems);
+router.patch('/:id/items/:itemId', authenticate, requireAdmin, editItem);
 router.patch('/:id/close', authenticate, requireAdmin, closeDay);
 router.patch('/:id/reopen', authenticate, requireAdmin, reopenDay);
+router.delete('/:id/items/:itemId', authenticate, requireAdmin, removeItem);
 router.delete('/:id', authenticate, requireAdmin, deleteDay);
 
 export default router;

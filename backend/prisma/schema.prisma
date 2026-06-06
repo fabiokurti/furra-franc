@@ -111,6 +111,7 @@ model Delivery {
   id           String         @id @default(uuid())
   status       DeliveryStatus @default(PENDING)
   isPaid       Boolean        @default(false)
+  paidAt       DateTime?
   notes        String?
   deliveryDate DateTime       @default(now())
   createdAt    DateTime       @default(now())

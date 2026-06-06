@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import api from '@/lib/api';
 import { formatDateAL, formatDateTimeAL } from '@/lib/date';
-import { printShopReceiptBT } from '@/lib/btPrint';
+import { printShopReceiptUSB } from '@/lib/printPreventiv';
 import type { ShopProduct, ShopSale, Delivery, DeliveryStatus } from '@/types';
 
 interface CartItem { shopProductId: string; name: string; quantity: number; unitPrice: number }
@@ -195,7 +195,7 @@ export function ShopPage() {
             Shitja u regjistrua! Totali: <span className="font-bold">{lastSale.items.reduce((s, i) => s + i.quantity * Number(i.unitPrice), 0).toFixed(0)} L</span>
           </p>
           <div className="flex items-center gap-1 shrink-0">
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-green-700" onClick={() => printShopReceiptBT(lastSale!)}>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-green-700" onClick={() => printShopReceiptUSB(lastSale!)}>
               <Printer className="h-3.5 w-3.5 mr-1" />Printo
             </Button>
             <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-green-700" onClick={() => setLastSale(null)}>
@@ -206,9 +206,9 @@ export function ShopPage() {
       )}
 
       {/* Main POS area: products + cart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Product grid */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           {shopProducts.length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center">
@@ -248,7 +248,7 @@ export function ShopPage() {
         </div>
 
         {/* Cart */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
           <Card className="sticky top-4">
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -373,7 +373,7 @@ export function ShopPage() {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <span className="text-sm font-bold text-green-600">{total.toFixed(0)} L</span>
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => printShopReceiptBT(sale)}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => printShopReceiptUSB(sale)}>
                         <Printer className="h-3.5 w-3.5" />
                       </Button>
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteSale(sale.id)}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PackageCheck, Lock, RefreshCw, Plus, ChevronDown, ChevronUp, History, Trash2, TrendingUp, Truck, Package } from 'lucide-react';
+import { PackageCheck, Lock, RefreshCw, Plus, ChevronDown, ChevronUp, History, Trash2, TrendingUp, Truck, Package, Pencil, Check, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,6 +97,25 @@ export function DailyStockPage() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const [previousRemaining, setPreviousRemaining] = useState<InputMap>({});
+  const [prevAddQty, setPrevAddQty] = useState<InputMap>({});
+  const [prevAdded, setPrevAdded] = useState<Set<string>>(new Set());
+
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingQty, setEditingQty] = useState<number>(0);
+
+  async function handleRemoveItem(itemId: string) {
+    if (!entry) return;
+    if (!confirm('Fshi këtë produkt nga prodhimi?')) return;
+    const res = await api.delete(`/daily-stock/${entry.id}/items/${itemId}`);
+    setEntry(res.data.entry);
+  }
+
+  async function handleEditItem(itemId: string) {
+    if (!entry) return;
+    const res = await api.patch(`/daily-stock/${entry.id}/items/${itemId}`, { quantity: editingQty });
+    setEntry(res.data.entry);
+    setEditingItemId(null);
+  }
 
   function toggleExpand(id: string) {
     setExpandedIds((prev) => {
@@ -148,10 +167,13 @@ export function DailyStockPage() {
               if (item.remaining > 0) rem[item.productId] = item.remaining;
             }
             setPreviousRemaining(rem);
+            setPrevAddQty({ ...rem });
           }
         } catch { /* ignore */ }
       } else {
         setPreviousRemaining({});
+        setPrevAddQty({});
+        setPrevAdded(new Set());
       }
       setAddQuantities({ ...blank });
       setNextQuantities({ ...blank });
@@ -358,33 +380,78 @@ export function DailyStockPage() {
 
           {/* Previous day leftovers banner */}
           {Object.keys(previousRemaining).length > 0 && (
-            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 px-4 py-3 gap-3 flex-wrap">
-              <div>
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                  Ka mbetje nga dita e kaluar
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                  {Object.values(previousRemaining).reduce((a, b) => a + b, 0)} copë nga {Object.keys(previousRemaining).length} produkte
-                </p>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 px-4 py-3 space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                    Ka mbetje nga dita e kaluar
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                    {Object.values(previousRemaining).reduce((a, b) => a + b, 0)} copë nga {Object.keys(previousRemaining).length} produkte
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:border-blue-700 shrink-0"
+                  onClick={() =>
+                    setQuantities((prev) => {
+                      const next = { ...prev };
+                      for (const [pid, qty] of Object.entries(previousRemaining)) {
+                        next[pid] = (next[pid] ?? 0) + qty;
+                      }
+                      return next;
+                    })
+                  }
+                >
+                  <PackageCheck className="h-4 w-4 mr-1.5" />
+                  Shto të gjitha
+                </Button>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:border-blue-700 shrink-0"
-                onClick={() =>
-                  setQuantities((prev) => {
-                    const next = { ...prev };
-                    for (const [pid, qty] of Object.entries(previousRemaining)) {
-                      next[pid] = (next[pid] ?? 0) + qty;
-                    }
-                    return next;
-                  })
-                }
-              >
-                <PackageCheck className="h-4 w-4 mr-1.5" />
-                Shto mbetjet
-              </Button>
+              <div className="flex flex-col gap-1.5">
+                {Object.entries(previousRemaining).map(([pid, maxQty]) => {
+                  const name = products.find((p) => p.id === pid)?.name ?? pid;
+                  const inputQty = prevAddQty[pid] ?? maxQty;
+                  return (
+                    <div key={pid} className="flex items-center gap-2 rounded-md bg-blue-100/60 dark:bg-blue-900/20 px-3 py-1.5">
+                      <span className="text-sm font-medium text-blue-800 dark:text-blue-300 flex-1 min-w-0 truncate">
+                        {name}
+                      </span>
+                      <span className="text-xs text-blue-500 dark:text-blue-400 shrink-0">max {maxQty}</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={maxQty}
+                        value={inputQty === 0 ? '' : inputQty}
+                        placeholder="0"
+                        className="h-7 w-16 text-center text-sm shrink-0"
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value);
+                          setPrevAddQty((prev) => ({ ...prev, [pid]: isNaN(n) ? 0 : Math.min(n, maxQty) }));
+                        }}
+                      />
+                      {prevAdded.has(pid) && (
+                        <Check className="h-4 w-4 text-green-500 shrink-0" />
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs text-blue-700 hover:bg-blue-200 dark:text-blue-300 shrink-0"
+                        disabled={inputQty <= 0}
+                        onClick={() => {
+                          setQuantities((prev) => ({ ...prev, [pid]: (prev[pid] ?? 0) + inputQty }));
+                          setPrevAdded((prev) => new Set(prev).add(pid));
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Shto
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
           <ProductForm
@@ -517,16 +584,18 @@ export function DailyStockPage() {
                     <th className="text-center px-4 py-3 font-semibold">Dërguar</th>
                     <th className="text-center px-4 py-3 font-semibold">Mbetur</th>
                     <th className="text-right px-4 py-3 font-semibold">Vlera</th>
+                    {isAdmin && entry.status === 'OPEN' && <th className="px-2 py-3" />}
                   </tr>
                 </thead>
                 <tbody>
                   {Object.entries(grouped(entry.items)).map(([category, items]) => {
                     const catVlera = items.reduce((s, i) => s + i.quantity * getPrice(i.productId), 0);
+                    const colSpanCat = isAdmin && entry.status === 'OPEN' ? 6 : 5;
                     return (
                       <React.Fragment key={category}>
                         {/* Category header row */}
                         <tr className="bg-muted/30 border-b border-t">
-                          <td colSpan={5} className="px-4 py-2">
+                          <td colSpan={colSpanCat} className="px-4 py-2">
                             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                               {category}
                             </span>
@@ -539,6 +608,7 @@ export function DailyStockPage() {
                           const price     = getPrice(item.productId);
                           const vlera     = item.quantity * price;
                           const pct       = item.quantity > 0 ? Math.round((item.delivered / item.quantity) * 100) : 0;
+                          const isEditing = editingItemId === item.id;
                           return (
                             <tr key={item.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
                               <td className="px-4 py-3">
@@ -559,7 +629,20 @@ export function DailyStockPage() {
                               <td className="px-4 py-3 text-right text-muted-foreground whitespace-nowrap">
                                 {fmt(price)} L
                               </td>
-                              <td className="px-4 py-3 text-center font-medium">{item.quantity}</td>
+                              <td className="px-4 py-3 text-center font-medium">
+                                {isEditing ? (
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    className="w-20 h-7 text-center text-sm mx-auto"
+                                    value={editingQty}
+                                    onChange={(e) => setEditingQty(parseInt(e.target.value) || 0)}
+                                    autoFocus
+                                  />
+                                ) : (
+                                  item.quantity
+                                )}
+                              </td>
                               <td className="px-4 py-3 text-center text-orange-600 font-medium">{item.delivered}</td>
                               <td className="px-4 py-3 text-center">
                                 <span className={`font-semibold ${
@@ -573,6 +656,47 @@ export function DailyStockPage() {
                               <td className="px-4 py-3 text-right font-medium text-primary whitespace-nowrap">
                                 {fmt(vlera)} L
                               </td>
+                              {isAdmin && entry.status === 'OPEN' && (
+                                <td className="px-2 py-3">
+                                  <div className="flex items-center gap-1 justify-end">
+                                    {isEditing ? (
+                                      <>
+                                        <button
+                                          className="p-1 rounded hover:bg-green-100 text-green-600"
+                                          onClick={() => handleEditItem(item.id)}
+                                          title="Ruaj"
+                                        >
+                                          <Check className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button
+                                          className="p-1 rounded hover:bg-muted text-muted-foreground"
+                                          onClick={() => setEditingItemId(null)}
+                                          title="Anulo"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <button
+                                          className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                                          onClick={() => { setEditingItemId(item.id); setEditingQty(item.quantity); }}
+                                          title="Ndrysho sasinë"
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button
+                                          className="p-1 rounded hover:bg-red-100 text-muted-foreground hover:text-red-600"
+                                          onClick={() => handleRemoveItem(item.id)}
+                                          title="Fshi produktin"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              )}
                             </tr>
                           );
                         })}
@@ -588,6 +712,7 @@ export function DailyStockPage() {
                     <td className="px-4 py-3 text-center font-bold text-orange-600">{fmt(totalDerguar)}</td>
                     <td className="px-4 py-3 text-center font-bold text-green-600">{fmt(totalMbetur)}</td>
                     <td className="px-4 py-3 text-right font-bold text-primary">{fmt(totalVlera)} L</td>
+                    {isAdmin && entry.status === 'OPEN' && <td />}
                   </tr>
                 </tfoot>
               </table>

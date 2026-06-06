@@ -80,6 +80,7 @@ export interface Delivery {
   id: string;
   status: DeliveryStatus;
   isPaid: boolean;
+  paidAt?: string;
   notes?: string;
   deliveryDate: string;
   createdAt: string;

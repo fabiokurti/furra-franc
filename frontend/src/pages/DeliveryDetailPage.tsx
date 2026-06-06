@@ -11,7 +11,7 @@ import api from '@/lib/api';
 import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
-import { formatDateAL } from '@/lib/date';
+import { formatDateAL, formatDateTimeAL } from '@/lib/date';
 import type { Delivery } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -131,6 +131,11 @@ export function DeliveryDetailPage() {
               >
                 {delivery.isPaid ? 'Paguar' : 'Pa paguar'}
               </Badge>
+            )}
+            {delivery.isPaid && delivery.paidAt && (
+              <span className="text-xs text-muted-foreground">
+                💰 {formatDateTimeAL(delivery.paidAt)}
+              </span>
             )}
           </div>
         </div>
