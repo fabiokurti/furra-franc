@@ -87,7 +87,7 @@ export function BusinessDetailPage() {
     async function loadSales() {
       setIsLoading(true);
       try {
-        const params: Record<string, string> = { userId, date: 'all' };
+        const params: Record<string, string> = { userId: userId!, date: 'all' };
         if (quickFilter !== 'custom' || (dateFrom && dateTo)) {
           params.dateFrom = dateFrom;
           params.dateTo   = dateTo;
