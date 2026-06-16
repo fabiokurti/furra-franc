@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import api from '@/lib/api';
 import { formatDateAL, formatDateTimeAL } from '@/lib/date';
 import { printShopReceiptUSB } from '@/lib/printPreventiv';
+import { useAuth } from '@/context/AuthContext';
 import type { ShopProduct, ShopSale, Delivery, DeliveryStatus } from '@/types';
 
 interface CartItem { shopProductId: string; name: string; quantity: number; unitPrice: number }
@@ -27,6 +28,8 @@ const statusClass: Record<DeliveryStatus, string> = {
 type Tab = 'history' | 'deliveries' | 'products';
 
 export function ShopPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [shopProducts, setShopProducts] = useState<ShopProduct[]>([]);
   const [sales, setSales] = useState<ShopSale[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -376,9 +379,11 @@ export function ShopPage() {
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => printShopReceiptUSB(sale)}>
                         <Printer className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteSale(sale.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      {isAdmin && (
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteSale(sale.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
@@ -439,9 +444,11 @@ export function ShopPage() {
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditProduct(p)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteProduct(p.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      {isAdmin && (
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteProduct(p.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
