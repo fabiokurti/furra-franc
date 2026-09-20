@@ -13,8 +13,7 @@ import type { Delivery, Client, ClientProductPrice, Product, User as UserType, D
 import { useAuth } from '@/context/AuthContext';
 
 import { todayLocalISO, formatDateAL, formatDateTimeAL } from '@/lib/date';
-import { printPreventivBT } from '@/lib/btPrint';
-import { printPreventiv, printPreventivUSB } from '@/lib/printPreventiv';
+import { printPreventiv, printPreventivWide } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 
 function todayISO() {
@@ -204,12 +203,12 @@ export function DeliveriesPage() {
     fetchDeliveries();
   };
 
-  const handlePrint = async (delivery: Delivery, type: '80mm' | '80mmusb' | 'a4') => {
+  const handlePrint = async (delivery: Delivery, type: '80mm' | '88mm' | 'a4') => {
     setPrintingId(delivery.id + type);
     try {
       const priceMap = await resolveDeliveryPrices(delivery);
-      if (type === '80mm') await printPreventivBT(delivery, priceMap);
-      else if (type === '80mmusb') printPreventivUSB(delivery, priceMap);
+      if (type === '80mm') printPreventivWide(delivery, priceMap, 80);
+      else if (type === '88mm') printPreventivWide(delivery, priceMap, 88);
       else printPreventiv(delivery, priceMap);
     } finally {
       setPrintingId(null);
@@ -461,7 +460,7 @@ export function DeliveriesPage() {
                   {/* Row 4: action buttons — horizontal wrap */}
                   <div className="flex flex-wrap gap-1.5">
                     <Button size="sm" variant="outline" className="gap-1.5 h-8"
-                      title="Printo 80mm (Bluetooth)"
+                      title="Printo 80mm"
                       disabled={printingId === delivery.id + '80mm'}
                       onClick={() => handlePrint(delivery, '80mm')}>
                       {printingId === delivery.id + '80mm'
@@ -470,10 +469,10 @@ export function DeliveriesPage() {
                       80mm
                     </Button>
                     <Button size="sm" variant="outline" className="gap-1.5 h-8"
-                      title="Printo 88mm (USB)"
-                      disabled={printingId === delivery.id + '80mmusb'}
-                      onClick={() => handlePrint(delivery, '80mmusb')}>
-                      {printingId === delivery.id + '80mmusb'
+                      title="Printo 88mm"
+                      disabled={printingId === delivery.id + '88mm'}
+                      onClick={() => handlePrint(delivery, '88mm')}>
+                      {printingId === delivery.id + '88mm'
                         ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         : <Printer className="h-3.5 w-3.5" />}
                       88mm
