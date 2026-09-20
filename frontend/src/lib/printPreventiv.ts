@@ -49,34 +49,35 @@ export function printPreventivWide(
   <title>Preventiv - ${delivery.client.name}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    @page{size:${widthMm}mm auto;margin:3mm}
-    html,body{background:#fff}
-    body{font-family:ui-sans-serif,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:#262624;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:${widthMm}mm auto;margin:0}
+    html,body{background:#fff;width:${widthMm}mm}
+    body{font-family:ui-sans-serif,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:#000;font-size:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .invoice{width:100%}
-    .invoice-bar{height:5px;background:#262624}
-    .invoice-body{padding:12px 6px 8px}
-    .invoice-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-bottom:12px;border-bottom:1px solid #dedcd6}
-    .brand{font-size:18px;font-weight:800;letter-spacing:.01em}
-    .brand-sub{margin-top:2px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#948d78;font-weight:600}
-    .pill{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid #262624;border-radius:999px;padding:4px 9px;white-space:nowrap}
-    .pill.paid{background:#262624;color:#fff}
-    .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;padding:12px 0;border-bottom:1px solid #dedcd6}
-    .meta .label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#948d78;font-weight:700;margin-bottom:2px}
-    .meta .value{font-size:12px;font-weight:600;overflow-wrap:break-word}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    thead th{text-align:left;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#948d78;font-weight:700;padding:0 3px 6px;border-bottom:2px solid #262624}
+    .invoice-bar{height:4px;background:#000}
+    .invoice-body{padding:8px 5px 6px}
+    .invoice-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;padding-bottom:8px;border-bottom:1px solid #999}
+    .brand{font-size:14px;font-weight:800;letter-spacing:.01em}
+    .brand-sub{margin-top:1px;font-size:6.5px;letter-spacing:.1em;text-transform:uppercase;color:#333;font-weight:700}
+    .pill{font-size:7px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border:1px solid #000;border-radius:999px;padding:2px 6px;white-space:nowrap}
+    .pill.paid{background:#000;color:#fff}
+    .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;padding:8px 0;border-bottom:1px solid #999}
+    .meta .label{font-size:6.5px;letter-spacing:.06em;text-transform:uppercase;color:#444;font-weight:700;margin-bottom:1px}
+    .meta .value{font-size:10px;font-weight:700;overflow-wrap:break-word}
+    table{width:100%;border-collapse:collapse;margin-top:8px;table-layout:fixed}
+    thead th{text-align:left;font-size:6.5px;letter-spacing:.03em;text-transform:uppercase;color:#333;font-weight:700;padding:0 2px 4px;border-bottom:1.5px solid #000}
     thead th.num,tbody td.num,tfoot td.num{text-align:right}
     thead th.center,tbody td.center{text-align:center}
-    tbody td{padding:7px 3px;font-size:12px;border-bottom:1px solid #dedcd6;font-variant-numeric:tabular-nums;vertical-align:top}
-    tbody td.name{font-weight:600}
-    .ret-badge{display:inline-block;min-width:18px;font-size:11px;font-weight:700;border:1px solid #262624;border-radius:5px;padding:1px 6px;font-variant-numeric:tabular-nums}
-    .ret-none{color:#b7b19c}
-    tfoot td{padding:10px 3px 2px;font-variant-numeric:tabular-nums}
-    tfoot .total-label{font-size:12px;font-weight:700;border-top:2px solid #262624;padding-top:10px}
-    tfoot .total-value{font-size:16px;font-weight:800;border-top:2px solid #262624;padding-top:8px;text-align:right}
-    .note{margin-top:12px;padding:8px 10px;border-left:3px solid #262624;font-size:11px;color:#55534c;font-style:italic}
-    .foot{text-align:center;padding:14px 6px 6px;font-size:11px;color:#a29c86;border-top:1px dashed #dedcd6;margin-top:12px}
-    @media print{body{padding:0}}
+    th.c-name{width:auto}th.c-qty,th.c-ret{width:9%}th.c-price,th.c-total{width:22%}
+    tbody td{padding:5px 2px;font-size:9.5px;border-bottom:1px solid #ddd;font-variant-numeric:tabular-nums;vertical-align:top;word-break:break-word}
+    tbody td.num{white-space:nowrap}
+    tbody td.name{font-weight:700}
+    .ret-badge{display:inline-block;min-width:13px;font-size:8.5px;font-weight:700;border:1px solid #000;border-radius:4px;padding:0 4px;font-variant-numeric:tabular-nums}
+    .ret-none{color:#999}
+    tfoot td{padding:7px 2px 2px;font-variant-numeric:tabular-nums}
+    tfoot .total-label{font-size:9px;font-weight:700;border-top:1.5px solid #000;padding-top:7px}
+    tfoot .total-value{font-size:13px;font-weight:800;border-top:1.5px solid #000;padding-top:6px;text-align:right;white-space:nowrap}
+    .note{margin-top:8px;padding:5px 7px;border-left:2px solid #000;font-size:8.5px;color:#222;font-style:italic}
+    .foot{text-align:center;padding:9px 5px 6px;font-size:8.5px;color:#555;border-top:1px dashed #999;margin-top:8px}
   </style>
 </head>
 <body>
@@ -101,11 +102,11 @@ export function printPreventivWide(
       <table>
         <thead>
           <tr>
-            <th>Produkti</th>
-            <th class="center">Sasia</th>
-            <th class="center">Kthyer</th>
-            <th class="num">&Ccedil;mimi</th>
-            <th class="num">Totali</th>
+            <th class="c-name">Produkti</th>
+            <th class="center c-qty">Sasia</th>
+            <th class="center c-ret">Kthyer</th>
+            <th class="num c-price">&Ccedil;mimi</th>
+            <th class="num c-total">Totali</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
