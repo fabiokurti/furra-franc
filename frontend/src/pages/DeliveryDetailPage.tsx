@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
 import { printPreventivBT } from '@/lib/btPrint';
-import { printPreventiv } from '@/lib/printPreventiv';
+import { printPreventiv, printPreventivUSB } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 import { formatDateAL, formatDateTimeAL } from '@/lib/date';
 import type { Delivery } from '@/types';
@@ -30,7 +30,7 @@ export function DeliveryDetailPage() {
   const [delivery, setDelivery] = useState<Delivery & { totalPrice?: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [printingType, setPrintingType] = useState<'80mm' | 'a4' | null>(null);
+  const [printingType, setPrintingType] = useState<'80mm' | '80mmusb' | 'a4' | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -74,12 +74,13 @@ export function DeliveryDetailPage() {
     navigate('/deliveries');
   };
 
-  const handlePrint = async (type: '80mm' | 'a4') => {
+  const handlePrint = async (type: '80mm' | '80mmusb' | 'a4') => {
     if (!delivery) return;
     setPrintingType(type);
     try {
       const priceMap = await resolveDeliveryPrices(delivery);
       if (type === '80mm') await printPreventivBT(delivery, priceMap);
+      else if (type === '80mmusb') printPreventivUSB(delivery, priceMap);
       else printPreventiv(delivery, priceMap);
     } finally {
       setPrintingType(null);
@@ -152,6 +153,19 @@ export function DeliveryDetailPage() {
               ? <Loader2 className="h-4 w-4 animate-spin" />
               : <Printer className="h-4 w-4" />}
             80mm
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            title="Printo 88mm (USB)"
+            disabled={printingType === '80mmusb'}
+            onClick={() => handlePrint('80mmusb')}
+          >
+            {printingType === '80mmusb'
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <Printer className="h-4 w-4" />}
+            88mm
           </Button>
           <Button
             size="sm"

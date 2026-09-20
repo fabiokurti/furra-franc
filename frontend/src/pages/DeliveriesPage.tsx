@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 
 import { todayLocalISO, formatDateAL, formatDateTimeAL } from '@/lib/date';
 import { printPreventivBT } from '@/lib/btPrint';
-import { printPreventiv } from '@/lib/printPreventiv';
+import { printPreventiv, printPreventivUSB } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 
 function todayISO() {
@@ -204,11 +204,12 @@ export function DeliveriesPage() {
     fetchDeliveries();
   };
 
-  const handlePrint = async (delivery: Delivery, type: '80mm' | 'a4') => {
+  const handlePrint = async (delivery: Delivery, type: '80mm' | '80mmusb' | 'a4') => {
     setPrintingId(delivery.id + type);
     try {
       const priceMap = await resolveDeliveryPrices(delivery);
       if (type === '80mm') await printPreventivBT(delivery, priceMap);
+      else if (type === '80mmusb') printPreventivUSB(delivery, priceMap);
       else printPreventiv(delivery, priceMap);
     } finally {
       setPrintingId(null);
@@ -467,6 +468,15 @@ export function DeliveriesPage() {
                         ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         : <Printer className="h-3.5 w-3.5" />}
                       80mm
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8"
+                      title="Printo 88mm (USB)"
+                      disabled={printingId === delivery.id + '80mmusb'}
+                      onClick={() => handlePrint(delivery, '80mmusb')}>
+                      {printingId === delivery.id + '80mmusb'
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Printer className="h-3.5 w-3.5" />}
+                      88mm
                     </Button>
                     <Button size="sm" variant="outline" className="gap-1.5 h-8"
                       title="Printo A4"
