@@ -73,7 +73,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     const totalPrice = d.items.reduce((sum, item) => {
       const specific = priceMap.get(`${d.clientId}:${item.productId}`);
       const unit = specific ?? Number(item.product.price);
-      return sum + unit * item.quantity;
+      return sum + unit * (item.quantity - item.returnedQuantity);
     }, 0);
     return { ...d, totalPrice };
   });

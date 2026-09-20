@@ -57,7 +57,7 @@ export async function getDeliveries(req: Request, res: Response): Promise<void> 
     ...d,
     totalPrice: d.items.reduce((sum, item) => {
       const unit = priceMap.get(`${d.clientId}:${item.productId}`) ?? Number(item.product.price);
-      return sum + unit * item.quantity;
+      return sum + unit * (item.quantity - item.returnedQuantity);
     }, 0),
   }));
 
@@ -121,6 +121,7 @@ export async function createDelivery(req: Request, res: Response): Promise<void>
         create: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
+          returnedQuantity: item.returnedQuantity,
         })),
       },
     },
@@ -155,7 +156,13 @@ export async function updateDelivery(req: Request, res: Response): Promise<void>
     where: { id: req.params.id },
     data: {
       notes,
-      items: { create: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) },
+      items: {
+        create: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          returnedQuantity: i.returnedQuantity,
+        })),
+      },
     },
     include: deliveryInclude,
   });

@@ -74,7 +74,7 @@ export function DeliverySummaryPage() {
               };
             }
             map[pid].totalQty   += item.quantity;
-            map[pid].totalValue += item.quantity * (priceMap[pid] ?? 0);
+            map[pid].totalValue += (item.quantity - item.returnedQuantity) * (priceMap[pid] ?? 0);
           }
         }
 

@@ -32,7 +32,7 @@ const statusConfig = {
 };
 
 // Selected product with quantity
-interface SelectedItem { productId: string; quantity: number | null }
+interface SelectedItem { productId: string; quantity: number | null; returnedQuantity: number | null }
 
 export function DeliveriesPage() {
   const { user } = useAuth();
@@ -115,7 +115,7 @@ export function DeliveriesPage() {
     setEditingDelivery(delivery);
     setSelectedClientId(delivery.clientId);
     setNotes(delivery.notes || '');
-    setSelectedItems(delivery.items.map((i) => ({ productId: i.productId, quantity: i.quantity })));
+    setSelectedItems(delivery.items.map((i) => ({ productId: i.productId, quantity: i.quantity, returnedQuantity: i.returnedQuantity || null })));
     setServerError('');
     setDialogOpen(true);
   };
@@ -124,14 +124,31 @@ export function DeliveriesPage() {
     setSelectedItems((prev) => {
       const exists = prev.find((i) => i.productId === productId);
       if (exists) return prev.filter((i) => i.productId !== productId);
-      return [...prev, { productId, quantity: null }];
+      return [...prev, { productId, quantity: null, returnedQuantity: null }];
     });
   };
 
   const setQty = (productId: string, qty: number | null) => {
     if (qty !== null && qty < 0) return;
     setSelectedItems((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i))
+      prev.map((i) => {
+        if (i.productId !== productId) return i;
+        const returnedQuantity = i.returnedQuantity !== null && qty !== null
+          ? Math.min(i.returnedQuantity, qty)
+          : i.returnedQuantity;
+        return { ...i, quantity: qty, returnedQuantity };
+      })
+    );
+  };
+
+  const setReturnedQty = (productId: string, returnedQty: number | null) => {
+    if (returnedQty !== null && returnedQty < 0) return;
+    setSelectedItems((prev) =>
+      prev.map((i) => {
+        if (i.productId !== productId) return i;
+        const capped = returnedQty !== null ? Math.min(returnedQty, i.quantity ?? 0) : returnedQty;
+        return { ...i, returnedQuantity: capped };
+      })
     );
   };
 
@@ -140,7 +157,9 @@ export function DeliveriesPage() {
   const onSubmit = async () => {
     setServerError('');
     if (!selectedClientId) { setServerError('Zgjidhni një klient'); return; }
-    const itemsToSend = selectedItems.filter((i) => (i.quantity ?? 0) > 0);
+    const itemsToSend = selectedItems
+      .filter((i) => (i.quantity ?? 0) > 0)
+      .map((i) => ({ productId: i.productId, quantity: i.quantity as number, returnedQuantity: i.returnedQuantity ?? 0 }));
     if (itemsToSend.length === 0) { setServerError('Zgjidhni të paktën një produkt me sasi > 0'); return; }
     setIsSubmitting(true);
     try {
@@ -429,6 +448,7 @@ export function DeliveriesPage() {
                     {delivery.items.map((item) => (
                       <span key={item.id} className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">
                         {item.product.name}<span className="ml-1 font-bold text-primary">×{item.quantity}</span>
+                        {!!item.returnedQuantity && <span className="ml-1 text-destructive">(K: {item.returnedQuantity})</span>}
                       </span>
                     ))}
                   </div>
@@ -577,18 +597,32 @@ export function DeliveriesPage() {
                           </div>
                         </button>
                         {selected && item && (
-                          <div className="flex items-center justify-between mt-1 px-1">
-                            <span className="text-xs text-muted-foreground">Sasia:</span>
-                            <div className="flex items-center gap-1">
-                              <button type="button" onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
-                                <Minus className="h-3 w-3" />
-                              </button>
-                              <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.quantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
-                              <button type="button" onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
-                                <Plus className="h-3 w-3" />
-                              </button>
+                          <>
+                            <div className="flex items-center justify-between mt-1 px-1">
+                              <span className="text-xs text-muted-foreground">Sasia:</span>
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => setQty(product.id, Math.max(0, (item.quantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.quantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
+                                <button type="button" onClick={() => setQty(product.id, (item.quantity ?? 0) + 1)} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                            <div className="flex items-center justify-between mt-1 px-1">
+                              <span className="text-xs text-muted-foreground">Kthyer:</span>
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => setReturnedQty(product.id, Math.max(0, (item.returnedQuantity ?? 0) - 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={item.returnedQuantity ?? ''} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ''); setReturnedQty(product.id, raw === '' ? null : parseInt(raw)); }} className="h-6 w-12 text-center text-xs px-1" />
+                                <button type="button" onClick={() => setReturnedQty(product.id, Math.min(item.quantity ?? 0, (item.returnedQuantity ?? 0) + 1))} className="h-6 w-6 rounded border flex items-center justify-center hover:bg-accent">
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </>
                         )}
                       </div>
                     );
@@ -617,6 +651,7 @@ export function DeliveriesPage() {
                   return p ? (
                     <span key={item.productId} className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium">
                       {p.name} ×{item.quantity}
+                      {!!item.returnedQuantity && <span className="ml-1 text-destructive">(K: {item.returnedQuantity})</span>}
                     </span>
                   ) : null;
                 })}

@@ -55,12 +55,15 @@ function buildReceipt(
   const itemParts: Uint8Array[] = [];
   let calcTotal = 0;
   for (const item of delivery.items) {
-    const price    = priceMap[item.productId] ?? 0;
-    const lineTotal = item.quantity * price;
+    const price        = priceMap[item.productId] ?? 0;
+    const returnedQty   = item.returnedQuantity ?? 0;
+    const effectiveQty  = item.quantity - returnedQty;
+    const lineTotal     = effectiveQty * price;
     calcTotal += lineTotal;
     itemParts.push(
       row(item.product.name),
       lr(`  ${item.quantity} x ${price} L`, `${lineTotal} L`),
+      ...(returnedQty > 0 ? [row(`  Kthyer: ${returnedQty}`)] : []),
     );
   }
   const total = calcTotal > 0 ? calcTotal : (delivery.totalPrice ?? 0);

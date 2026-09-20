@@ -245,7 +245,12 @@ export function DeliveryDetailPage() {
                   <p className="text-sm font-medium">{item.product.name}</p>
                   <p className="text-xs text-muted-foreground">{item.product.category}</p>
                 </div>
-                <span className="text-sm font-bold text-primary">×{item.quantity}</span>
+                <div className="text-right">
+                  <span className="text-sm font-bold text-primary">×{item.quantity}</span>
+                  {!!item.returnedQuantity && (
+                    <p className="text-xs text-destructive">Kthyer: {item.returnedQuantity}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

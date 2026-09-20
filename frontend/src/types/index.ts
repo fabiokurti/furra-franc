@@ -72,6 +72,7 @@ export interface Client {
 export interface DeliveryItem {
   id: string;
   quantity: number;
+  returnedQuantity: number;
   productId: string;
   product: Pick<Product, 'id' | 'name' | 'category'>;
 }

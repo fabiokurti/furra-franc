@@ -11,13 +11,15 @@ export function printPreventiv(
 
   let calcTotal = 0;
   const itemsRows = delivery.items.map((item) => {
-    const price     = priceMap[item.productId] ?? 0;
-    const lineTotal = item.quantity * price;
+    const price       = priceMap[item.productId] ?? 0;
+    const returnedQty  = item.returnedQuantity ?? 0;
+    const effectiveQty = item.quantity - returnedQty;
+    const lineTotal    = effectiveQty * price;
     calcTotal += lineTotal;
     return `
       <tr>
         <td>${item.product.name}</td>
-        <td style="text-align:center">${item.quantity}</td>
+        <td style="text-align:center">${item.quantity}${returnedQty > 0 ? `<br><span style="font-size:8pt">(K: ${returnedQty})</span>` : ''}</td>
         <td style="text-align:right">${price} L</td>
         <td style="text-align:right;font-weight:bold">${lineTotal} L</td>
       </tr>`;
