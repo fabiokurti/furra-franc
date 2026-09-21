@@ -63,17 +63,20 @@ function buildReceipt(
     itemParts.push(
       row(item.product.name),
       lr(`  ${item.quantity} x ${price} L`, `${lineTotal} L`),
-      ...(returnedQty > 0 ? [row(`  Kthyer: ${returnedQty}`)] : []),
+      ...(returnedQty > 0 ? [row(`  (Kthyer ${returnedQty} -> neto ${effectiveQty})`)] : []),
     );
   }
   const total = calcTotal > 0 ? calcTotal : (delivery.totalPrice ?? 0);
+  const hasReturns = delivery.items.some((i) => (i.returnedQuantity ?? 0) > 0);
 
   return merge(
     cmd(ESC, 0x40),
     cmd(ESC, 0x61, 0x01), cmd(GS, 0x21, 0x11), cmd(ESC, 0x45, 0x01),
     row('FURRA FRANC'),
-    cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
+    cmd(GS, 0x21, 0x00),
     row('Preventiv Dergese'),
+    cmd(ESC, 0x45, 0x00),
+    row(delivery.isPaid ? '[ PAGUAR ]' : '[ PA PAGUAR ]'),
     nl(),
     sep('='),
     cmd(ESC, 0x61, 0x00),
@@ -89,8 +92,9 @@ function buildReceipt(
     sep(),
     ...itemParts,
     sep(),
+    ...(hasReturns ? [row('Totali eshte pas zbritjes se kthimeve')] : []),
     cmd(ESC, 0x45, 0x01), cmd(GS, 0x21, 0x11),
-    lr('TOTAL:', `${total.toFixed(0)} L`),
+    lr('TOTALI:', `${total.toFixed(0)} L`),
     cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
     ...(delivery.notes ? [sep(), row(`Note: ${delivery.notes}`)] : []),
     sep('='),

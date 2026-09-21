@@ -13,6 +13,7 @@ import type { Delivery, Client, ClientProductPrice, Product, User as UserType, D
 import { useAuth } from '@/context/AuthContext';
 
 import { todayLocalISO, formatDateAL, formatDateTimeAL } from '@/lib/date';
+import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv, printPreventivWide } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 
@@ -207,7 +208,7 @@ export function DeliveriesPage() {
     setPrintingId(delivery.id + type);
     try {
       const priceMap = await resolveDeliveryPrices(delivery);
-      if (type === '80mm') printPreventivWide(delivery, priceMap, 80);
+      if (type === '80mm') await printPreventivBT(delivery, priceMap);
       else if (type === '88mm') printPreventivWide(delivery, priceMap, 88);
       else printPreventiv(delivery, priceMap);
     } finally {
@@ -460,7 +461,7 @@ export function DeliveriesPage() {
                   {/* Row 4: action buttons — horizontal wrap */}
                   <div className="flex flex-wrap gap-1.5">
                     <Button size="sm" variant="outline" className="gap-1.5 h-8"
-                      title="Printo 80mm"
+                      title="Printo direkt 80mm (Bluetooth)"
                       disabled={printingId === delivery.id + '80mm'}
                       onClick={() => handlePrint(delivery, '80mm')}>
                       {printingId === delivery.id + '80mm'
