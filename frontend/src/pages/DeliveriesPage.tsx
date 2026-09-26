@@ -13,7 +13,7 @@ import type { Delivery, Client, ClientProductPrice, Product, User as UserType, D
 import { useAuth } from '@/context/AuthContext';
 
 import { todayLocalISO, formatDateAL, formatDateTimeAL } from '@/lib/date';
-import { printPreventivImageBT } from '@/lib/btPrint';
+import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv, printPreventivWide } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 
@@ -208,7 +208,7 @@ export function DeliveriesPage() {
     setPrintingId(delivery.id + type);
     try {
       const priceMap = await resolveDeliveryPrices(delivery);
-      if (type === '80mm') await printPreventivImageBT(delivery, priceMap);
+      if (type === '80mm') await printPreventivBT(delivery, priceMap);
       else if (type === '88mm') printPreventivWide(delivery, priceMap, 88);
       else printPreventiv(delivery, priceMap);
     } finally {

@@ -93,7 +93,7 @@ function buildReceipt(
     ...itemParts,
     sep(),
     ...(hasReturns ? [row('Totali eshte pas zbritjes se kthimeve')] : []),
-    cmd(ESC, 0x45, 0x01), cmd(GS, 0x21, 0x11),
+    cmd(ESC, 0x45, 0x01), cmd(GS, 0x21, 0x01),
     lr('TOTALI:', `${total.toFixed(0)} L`),
     cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
     ...(delivery.notes ? [sep(), row(`Note: ${delivery.notes}`)] : []),

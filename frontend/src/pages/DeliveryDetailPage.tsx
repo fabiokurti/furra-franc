@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
-import { printPreventivImageBT } from '@/lib/btPrint';
+import { printPreventivBT } from '@/lib/btPrint';
 import { printPreventiv, printPreventivWide } from '@/lib/printPreventiv';
 import { resolveDeliveryPrices } from '@/lib/deliveryPrices';
 import { formatDateAL, formatDateTimeAL } from '@/lib/date';
@@ -79,7 +79,7 @@ export function DeliveryDetailPage() {
     setPrintingType(type);
     try {
       const priceMap = await resolveDeliveryPrices(delivery);
-      if (type === '80mm') await printPreventivImageBT(delivery, priceMap);
+      if (type === '80mm') await printPreventivBT(delivery, priceMap);
       else if (type === '88mm') printPreventivWide(delivery, priceMap, 88);
       else printPreventiv(delivery, priceMap);
     } finally {
