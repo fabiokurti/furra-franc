@@ -19,6 +19,7 @@ import { BusinessSalesPage } from '@/pages/BusinessSalesPage';
 import { BusinessDetailPage } from '@/pages/BusinessDetailPage';
 import { ClientDetailPage } from '@/pages/ClientDetailPage';
 import { StaffDetailPage } from '@/pages/StaffDetailPage';
+import { AssistantPage } from '@/pages/AssistantPage';
 import { useAuth } from '@/context/AuthContext';
 
 function RoleRedirect() {
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <RoleRedirect /> },
           { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/assistant', element: <AssistantPage /> },
           { path: '/products', element: <ProductsPage /> },
           { path: '/orders', element: <OrdersPage /> },
           { path: '/clients', element: <ClientsPage /> },

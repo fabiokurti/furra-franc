@@ -11,6 +11,7 @@ import deliveryRoutes from './routes/delivery.routes';
 import returnRoutes from './routes/return.routes';
 import dailyStockRoutes from './routes/dailyStock.routes';
 import shopRoutes from './routes/shop.routes';
+import aiRoutes from './routes/ai.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/kthimet', returnRoutes);
 app.use('/api/daily-stock', dailyStockRoutes);
 app.use('/api/shop', shopRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 

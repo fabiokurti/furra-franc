@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck, Store, BarChart3, RotateCcw } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, ChefHat, Users, Truck, UserCog, PackageCheck, Store, BarChart3, RotateCcw, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 
 const adminNavItems = [
   { to: '/dashboard',      label: 'Paneli',          icon: LayoutDashboard },
+  { to: '/assistant',      label: 'Asistenti AI',     icon: Sparkles        },
   { to: '/deliveries',     label: 'Dërgimet',         icon: Truck           },
   { to: '/kthimet',        label: 'Kthimet',          icon: RotateCcw       },
   { to: '/clients',        label: 'Klientët',         icon: Users           },
