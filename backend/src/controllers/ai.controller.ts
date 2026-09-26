@@ -41,8 +41,12 @@ function round2(n: number): number {
  * Builds a comprehensive, structured snapshot of the bakery's data so the model
  * can act as a finance analyst: production, deliveries (with client + distributor
  * + revenue), returns, shop sales, and precomputed aggregate summaries.
+ *
+ * `message` is the user's question — if it mentions one or more known client
+ * names, a detailed per-client breakdown is injected so the model can answer
+ * client-specific comparisons without bloating the prompt for everyone.
  */
-async function buildDataContext() {
+async function buildDataContext(message = '') {
   const since = new Date();
   since.setUTCDate(since.getUTCDate() - LOOKBACK_DAYS);
   since.setUTCHours(0, 0, 0, 0);
@@ -300,6 +304,62 @@ async function buildDataContext() {
   const cutoffStr = ymd(detailCutoff);
   const recent = <T extends { date: string }>(arr: T[]) => arr.filter((r) => r.date >= cutoffStr);
 
+  // ── Per-client detail (only for clients named in the question) ──
+  // Keeps the prompt small: full detail is injected only for the asked client(s).
+  const clientNames = [...new Set(deliveriesDetailed.map((d) => d.client))];
+  const msgLower = message.toLowerCase();
+  const focusClients = clientNames
+    .filter((name) => name && name !== 'I panjohur' && msgLower.includes(name.toLowerCase()))
+    .slice(0, 3);
+
+  const clientDetails = focusClients.map((name) => {
+    const rows = deliveriesDetailed.filter((d) => d.client === name);
+    const byProduct: Record<string, { quantity: number; revenue: number }> = {};
+    const byWeek: Record<string, { qty: number; revenue: number }> = {};
+    let revenue = 0;
+    let paid = 0;
+    let unpaid = 0;
+    let qty = 0;
+    for (const d of rows) {
+      revenue += d.revenue;
+      if (d.isPaid) paid += d.revenue;
+      else unpaid += d.revenue;
+      const wk = mondayOf(d.date);
+      const w = (byWeek[wk] ??= { qty: 0, revenue: 0 });
+      w.revenue += d.revenue;
+      for (const it of d.items) {
+        qty += it.quantity;
+        w.qty += it.quantity;
+        const bp = (byProduct[it.product] ??= { quantity: 0, revenue: 0 });
+        bp.quantity += it.quantity;
+        bp.revenue += it.revenue;
+      }
+    }
+    const weekly = Object.entries(byWeek)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([wk, v]) => {
+        const end = new Date(wk + 'T00:00:00Z');
+        end.setUTCDate(end.getUTCDate() + 6);
+        return { weekStart: wk, weekLabel: `${ddmm(wk)} - ${ddmm(ymd(end))}`, qty: v.qty, revenue: round2(v.revenue) };
+      });
+    const productBreakdown = Object.entries(byProduct)
+      .map(([product, v]) => ({ product, quantity: v.quantity, revenue: round2(v.revenue) }))
+      .sort((a, b) => b.revenue - a.revenue);
+    return {
+      client: name,
+      totals: {
+        revenue: round2(revenue),
+        paid: round2(paid),
+        unpaid: round2(unpaid),
+        quantity: qty,
+        deliveries: rows.length,
+      },
+      weekly,
+      byProduct: productBreakdown,
+      recentDeliveries: recent(rows),
+    };
+  });
+
   return {
     currency: 'LEK',
     note: `Të dhënat e detajuara ditore mbulojnë ${DETAIL_DAYS} ditët e fundit; "weekly" dhe "summaries" mbulojnë deri në ${LOOKBACK_DAYS} ditë. Listat te "summaries" janë të kufizuara te ${TOP_N} të parat.`,
@@ -308,6 +368,7 @@ async function buildDataContext() {
     returns: recent(returnsSummary),
     daily: recent(daily),
     weekly,
+    ...(clientDetails.length ? { clientDetails } : {}),
     summaries: {
       salesByProduct: toSortedArray(salesByProduct, 'product', 'revenue'),
       salesByDistributor: toSortedArray(salesByDistributor, 'distributor', 'revenue'),
@@ -340,7 +401,7 @@ export async function chat(req: Request, res: Response): Promise<void> {
 
   let data;
   try {
-    data = await buildDataContext();
+    data = await buildDataContext(message);
   } catch (err) {
     console.error('AI data context error:', err);
     res.status(500).json({ message: 'Gabim gjatë leximit të të dhënave.' });
@@ -391,6 +452,8 @@ TË DHËNAT (JSON):
   - "salesByClient": klientët sipas të ardhurave, me "paid"/"unpaid" (borxhi = unpaid).
   - "shopSalesByProduct" dhe "shopSalesBySeller": e njëjta logjikë për dyqanin.
   - "totals": të ardhurat totale nga dërgesat (deliveryRevenue), sa janë paguar (deliveryPaid), sa mbeten pa paguar (deliveryUnpaid), të ardhurat nga dyqani (shopRevenue) dhe totali i përgjithshëm (grandTotalRevenue).
+- "clientDetails": SHFAQET VETËM kur pyetja përmend një klient specifik. Për secilin klient të përmendur jep: "totals" (revenue, paid, unpaid, quantity, deliveries), "weekly" (të ardhura e sasi javë pas jave për atë klient), "byProduct" (sa nga çdo produkt ka marrë ai klient) dhe "recentDeliveries" (dërgesat e fundit të detajuara). PËRDOR këtë kur pyetesh për një klient të caktuar ose kur krahason klientë.
+- Nëse përdoruesi pyet për një klient specifik por "clientDetails" mungon ose është bosh, do të thotë që emri i klientit nuk u njoh — kërko nga përdoruesi ta shkruajë emrin saktë siç është në sistem.
 
 JSON:
 ${JSON.stringify(data)}`;
