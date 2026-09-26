@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Bot, Send, User, Loader2, Sparkles, Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
@@ -42,6 +44,7 @@ function loadChats(): Chat[] {
 }
 
 export function AssistantPage() {
+  const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>(loadChats);
   const [activeId, setActiveId] = useState<string>(() => chats[0].id);
   const [input, setInput] = useState('');
@@ -159,6 +162,12 @@ export function AssistantPage() {
       </div>
     </div>
   );
+
+  // Manager-only: delivery (STAFF) and shop (BUSINESS) accounts are redirected.
+  // (The backend also enforces this — the endpoint is admin-only.)
+  if (user && user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="flex gap-4 h-[calc(100dvh-6rem)] lg:h-[calc(100dvh-3.5rem)]">
