@@ -17,6 +17,7 @@ const cmd  = (...b: number[]) => new Uint8Array(b);
 const row  = (s: string)    => enc(safe(s) + '\n');
 const nl   = ()             => enc('\n');
 const sep  = (c = '-')      => enc(c.repeat(W) + '\n');
+const fine = ()             => merge(new Uint8Array(W).fill(0xc4), enc('\n')); // thin rule (CP437 ─)
 
 function safe(s: string) {
   return s.replace(/ë/g, 'e').replace(/Ë/g, 'E').replace(/ç/g, 'c').replace(/Ç/g, 'C');
@@ -71,35 +72,35 @@ function buildReceipt(
 
   return merge(
     cmd(ESC, 0x40),
-    cmd(ESC, 0x61, 0x01), cmd(GS, 0x21, 0x11), cmd(ESC, 0x45, 0x01),
+    cmd(ESC, 0x61, 0x01),
+    cmd(GS, 0x21, 0x11),
     row('FURRA FRANC'),
     cmd(GS, 0x21, 0x00),
     row('Preventiv Dergese'),
-    cmd(ESC, 0x45, 0x00),
-    row(delivery.isPaid ? '[ PAGUAR ]' : '[ PA PAGUAR ]'),
+    row(delivery.isPaid ? 'PAGUAR' : 'PA PAGUAR'),
     nl(),
-    sep('='),
     cmd(ESC, 0x61, 0x00),
-    row(`Data: ${date}`),
-    row(`Ora:  ${time}`),
-    sep(),
-    cmd(ESC, 0x45, 0x01), row(`Klienti: ${delivery.client.name}`), cmd(ESC, 0x45, 0x00),
+    fine(),
+    row(`Data:  ${date}`),
+    row(`Ora:   ${time}`),
+    fine(),
+    row(`Klienti: ${delivery.client.name}`),
     ...(delivery.client.address ? [row(`Adresa:  ${delivery.client.address}`)] : []),
     ...(delivery.client.phone   ? [row(`Tel:     ${delivery.client.phone}`)]   : []),
     row(`Shpern.: ${delivery.createdBy.name}`),
-    sep(),
+    fine(),
     lr('Produkti', 'Total'),
-    sep(),
+    fine(),
     ...itemParts,
-    sep(),
-    ...(hasReturns ? [row('Totali eshte pas zbritjes se kthimeve')] : []),
-    cmd(ESC, 0x45, 0x01), cmd(GS, 0x21, 0x01),
+    fine(),
+    ...(hasReturns ? [row('Totali pas kthimeve')] : []),
+    cmd(GS, 0x21, 0x01),
     lr('TOTALI:', `${total.toFixed(0)} L`),
-    cmd(GS, 0x21, 0x00), cmd(ESC, 0x45, 0x00),
-    ...(delivery.notes ? [sep(), row(`Note: ${delivery.notes}`)] : []),
-    sep('='),
+    cmd(GS, 0x21, 0x00),
+    ...(delivery.notes ? [fine(), row(`Note: ${delivery.notes}`)] : []),
+    fine(),
     cmd(ESC, 0x61, 0x01),
-    row('Furra Franc - Faleminderit!'),
+    row('Faleminderit!'),
     cmd(ESC, 0x64, 0x08),
     cmd(GS, 0x56, 0x42, 0x00),
   );
