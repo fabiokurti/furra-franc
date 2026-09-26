@@ -105,6 +105,198 @@ function buildReceipt(
   );
 }
 
+// ── Image (raster) receipt: renders the styled design and prints it as a
+//    bitmap so the thermal printer shows the real layout, not just text ──────
+const PRINTER_DOTS = 576; // 80mm print head width in dots (lower to 384 if cut off)
+
+function moneyImg(n: number): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' L';
+}
+
+function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function hline(ctx: CanvasRenderingContext2D, x1: number, x2: number, y: number, w = 1, dashed = false) {
+  ctx.lineWidth = w;
+  if (dashed) ctx.setLineDash([5, 4]);
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+  ctx.setLineDash([]); ctx.lineWidth = 1;
+}
+
+function clipText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number) {
+  if (ctx.measureText(text).width <= maxW) { ctx.fillText(text, x, y); return; }
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+  ctx.fillText(t + '…', x, y);
+}
+
+function renderReceiptCanvas(
+  delivery: Delivery & { totalPrice?: number },
+  priceMap: Record<string, number>,
+): { canvas: HTMLCanvasElement; height: number } {
+  const W = PRINTER_DOTS;
+  const PAD = 18;
+  const cw = W - PAD * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = 2600;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return { canvas, height: 0 };
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, canvas.height);
+  ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.textBaseline = 'top';
+
+  const date = formatDateAL(delivery.deliveryDate, true);
+  const now  = new Date();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  // top bar
+  ctx.fillRect(0, 0, W, 12);
+  let y = 34;
+
+  // brand + paid pill
+  ctx.textAlign = 'left'; ctx.font = '800 46px Arial';
+  ctx.fillText('Furra Franc', PAD, y);
+  const paid = delivery.isPaid;
+  const pillText = paid ? 'PAGUAR' : 'PA PAGUAR';
+  ctx.font = 'bold 20px Arial';
+  const pillW = ctx.measureText(pillText).width + 26;
+  const pillH = 34, pillX = W - PAD - pillW, pillY = y + 6;
+  ctx.lineWidth = 2; rrect(ctx, pillX, pillY, pillW, pillH, 17);
+  if (paid) { ctx.fill(); ctx.fillStyle = '#fff'; } else { ctx.stroke(); }
+  ctx.textAlign = 'center'; ctx.fillText(pillText, pillX + pillW / 2, pillY + 8);
+  ctx.fillStyle = '#000'; ctx.textAlign = 'left';
+  y += 52;
+  ctx.font = 'bold 18px Arial'; ctx.fillText('PREVENTIV DËRGESE', PAD, y);
+  y += 30;
+  hline(ctx, PAD, W - PAD, y); y += 18;
+
+  // meta grid (2 columns)
+  const c2 = PAD + cw / 2;
+  const meta = (l1: string, v1: string, l2: string, v2: string) => {
+    ctx.textAlign = 'left'; ctx.font = 'bold 15px Arial';
+    ctx.fillText(l1, PAD, y); ctx.fillText(l2, c2, y);
+    ctx.font = 'bold 25px Arial';
+    clipText(ctx, v1, PAD, y + 18, cw / 2 - 14);
+    clipText(ctx, v2, c2, y + 18, W - PAD - c2);
+    y += 52;
+  };
+  meta('DATA', date, 'ORA', time);
+  meta('KLIENTI', delivery.client.name, 'SHPËRNDARËSI', delivery.createdBy.name);
+  y += 4; hline(ctx, PAD, W - PAD, y); y += 16;
+
+  // table columns
+  const xName = PAD, xQty = PAD + cw * 0.52, xRet = PAD + cw * 0.66,
+        xPrice = W - PAD - cw * 0.17, xTotal = W - PAD;
+  ctx.font = 'bold 15px Arial';
+  ctx.textAlign = 'left';   ctx.fillText('PRODUKTI', xName, y);
+  ctx.textAlign = 'center'; ctx.fillText('SASIA', xQty, y);
+  ctx.textAlign = 'center'; ctx.fillText('KTHYER', xRet, y);
+  ctx.textAlign = 'right';  ctx.fillText('ÇMIMI', xPrice, y);
+  ctx.textAlign = 'right';  ctx.fillText('TOTALI', xTotal, y);
+  y += 22; hline(ctx, PAD, W - PAD, y, 3); y += 12;
+
+  // rows
+  let calcTotal = 0;
+  for (const item of delivery.items) {
+    const price = priceMap[item.productId] ?? 0;
+    const ret   = item.returnedQuantity ?? 0;
+    const eff   = item.quantity - ret;
+    const line  = eff * price;
+    calcTotal += line;
+    ctx.textAlign = 'left'; ctx.font = 'bold 24px Arial';
+    clipText(ctx, item.product.name, xName, y, cw * 0.48);
+    ctx.font = '24px Arial'; ctx.textAlign = 'center';
+    ctx.fillText(String(item.quantity), xQty, y);
+    if (ret > 0) {
+      ctx.font = 'bold 20px Arial';
+      const bt = String(ret), bw = ctx.measureText(bt).width + 18;
+      ctx.lineWidth = 2; rrect(ctx, xRet - bw / 2, y - 3, bw, 30, 6); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.fillText(bt, xRet, y + 1);
+    } else {
+      ctx.textAlign = 'center'; ctx.font = '24px Arial'; ctx.fillText('—', xRet, y);
+    }
+    ctx.font = '24px Arial'; ctx.textAlign = 'right'; ctx.fillText(moneyImg(price), xPrice, y);
+    ctx.font = 'bold 24px Arial'; ctx.fillText(moneyImg(line), xTotal, y);
+    y += 38; hline(ctx, PAD, W - PAD, y - 6, 1, true);
+  }
+  const total = calcTotal > 0 ? calcTotal : (delivery.totalPrice ?? 0);
+
+  // total
+  y += 6; hline(ctx, PAD, W - PAD, y, 3); y += 14;
+  ctx.textAlign = 'left';  ctx.font = 'bold 24px Arial';  ctx.fillText('TOTALI (pas kthimeve)', xName, y);
+  ctx.textAlign = 'right'; ctx.font = '800 34px Arial';   ctx.fillText(moneyImg(total), xTotal, y - 6);
+  y += 48;
+
+  // note
+  if (delivery.notes) {
+    ctx.fillRect(PAD, y, 5, 38);
+    ctx.textAlign = 'left'; ctx.font = 'italic 20px Arial';
+    clipText(ctx, 'Shënim: ' + delivery.notes, PAD + 14, y + 6, cw - 22);
+    y += 50;
+  }
+
+  // footer
+  y += 8; hline(ctx, PAD, W - PAD, y, 1, true); y += 16;
+  ctx.textAlign = 'center'; ctx.font = '20px Arial';
+  ctx.fillText('Furra Franc — Faleminderit!', W / 2, y);
+  y += 40;
+
+  // bottom padding (extra whitespace before cut)
+  y += 70;
+  return { canvas, height: Math.min(y, canvas.height) };
+}
+
+function canvasToRaster(canvas: HTMLCanvasElement, height: number): Uint8Array {
+  const ctx = canvas.getContext('2d');
+  if (!ctx || height <= 0) return cmd(ESC, 0x40);
+  const W = canvas.width;
+  const widthBytes = Math.ceil(W / 8);
+  const img = ctx.getImageData(0, 0, W, height).data;
+  const parts: Uint8Array[] = [cmd(ESC, 0x40)];
+  const BAND = 128;
+  for (let y0 = 0; y0 < height; y0 += BAND) {
+    const h = Math.min(BAND, height - y0);
+    const data = new Uint8Array(widthBytes * h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = ((y0 + y) * W + x) * 4;
+        const lum = img[i] * 0.299 + img[i + 1] * 0.587 + img[i + 2] * 0.114;
+        if (lum < 176) data[y * widthBytes + (x >> 3)] |= 0x80 >> (x & 7);
+      }
+    }
+    parts.push(
+      cmd(GS, 0x76, 0x30, 0x00, widthBytes & 0xff, (widthBytes >> 8) & 0xff, h & 0xff, (h >> 8) & 0xff),
+      data,
+    );
+  }
+  parts.push(cmd(ESC, 0x64, 0x03), cmd(GS, 0x56, 0x42, 0x00));
+  return merge(...parts);
+}
+
+export async function printPreventivImageBT(
+  delivery: Delivery & { totalPrice?: number },
+  priceMap: Record<string, number>,
+): Promise<void> {
+  const conn = await bleConnect();
+  if (!conn) return;
+  const { device, writeChar } = conn;
+  try {
+    const { canvas, height } = renderReceiptCanvas(delivery, priceMap);
+    await bleWrite(writeChar, canvasToRaster(canvas, height));
+  } catch (e: unknown) {
+    alert('Gabim gjate printimit: ' + (e as Error).message);
+  } finally {
+    device.gatt.disconnect();
+  }
+}
+
 // ── shared BLE connect / write ─────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function bleConnect(): Promise<{ device: any; writeChar: any } | null> {
