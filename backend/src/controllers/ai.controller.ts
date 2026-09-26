@@ -275,6 +275,8 @@ async function buildDataContext() {
     });
 
   // ── Precomputed summaries (sorted, ready for "top X" questions) ──
+  // Cap each list so the prompt stays well within the model's token limit.
+  const TOP_N = 50;
   const toSortedArray = <T extends Record<string, number>>(
     obj: Record<string, T>,
     key: string,
@@ -283,20 +285,28 @@ async function buildDataContext() {
     Object.entries(obj)
       .map(([name, v]) => ({ [key]: name, ...v }))
       .sort((a, b) => Number(b[sortField]) - Number(a[sortField]))
+      .slice(0, TOP_N)
       .map((row) => {
         const out: Record<string, unknown> = {};
         for (const [k, val] of Object.entries(row)) out[k] = typeof val === 'number' ? round2(val) : val;
         return out;
       });
 
+  // Only recent detail is emitted for the day-level arrays; the aggregates
+  // (weekly/summaries) still cover the full lookback window.
+  const DETAIL_DAYS = 90;
+  const detailCutoff = new Date();
+  detailCutoff.setUTCDate(detailCutoff.getUTCDate() - DETAIL_DAYS);
+  const cutoffStr = ymd(detailCutoff);
+  const recent = <T extends { date: string }>(arr: T[]) => arr.filter((r) => r.date >= cutoffStr);
+
   return {
     currency: 'LEK',
+    note: `Të dhënat e detajuara ditore mbulojnë ${DETAIL_DAYS} ditët e fundit; "weekly" dhe "summaries" mbulojnë deri në ${LOOKBACK_DAYS} ditë. Listat te "summaries" janë të kufizuara te ${TOP_N} të parat.`,
     products: products.map((p) => ({ name: p.name, category: p.category, price: Number(p.price) })),
-    production,
-    deliveries: deliveriesDetailed,
-    returns: returnsSummary,
-    shopSales: shopSalesDetailed,
-    daily,
+    production: recent(production),
+    returns: recent(returnsSummary),
+    daily: recent(daily),
     weekly,
     summaries: {
       salesByProduct: toSortedArray(salesByProduct, 'product', 'revenue'),
@@ -368,12 +378,12 @@ RAPORTE DHE KRAHASIME:
 
 TË DHËNAT (JSON):
 - "currency": monedha (LEK).
+- "note": shpjegim i periudhës që mbulojnë të dhënat.
 - "products": produktet aktive me çmim bazë dhe kategori.
-- "production": prodhimi ditor (nga Prodhimi Ditor), me "items" dhe "total".
-- "deliveries": çdo dërgesë te klientët (= shitjet me shumicë). Ka "client", "distributor" (shpërndarësi), "isPaid" (e paguar apo jo), "revenue" (të ardhurat në LEK) dhe "items" me sasi neto (pas kthimeve) e të ardhura për produkt.
-- "returns": sasitë e kthyera për çdo ditë.
-- "shopSales": shitjet direkte në dyqan, me "seller" (shitësi), "revenue" dhe "items".
+- "production": prodhimi ditor (nga Prodhimi Ditor), me "items" dhe "total" (vetëm ditët e fundit).
+- "returns": sasitë e kthyera për çdo ditë (vetëm ditët e fundit).
 - "daily": përmbledhje ditore e gatshme për krahasime — për çdo ditë: "productionQty" (sasia e prodhuar), "salesQty" (sasia e shitur/dërguar neto), "salesRevenue" (të ardhurat nga dërgesat), "returnsQty" (sasia e kthyer), "shopRevenue" (të ardhurat nga dyqani).
+- SHËNIM: nuk ka listë të dërgesave/shitjeve një nga një. Për shitjet/të ardhurat/klientët/shpërndarësit përdor "daily", "weekly" dhe "summaries".
 - "weekly": e njëjta përmbledhje por sipas javës (java fillon të hënën). Ka "weekStart" (data e së hënës), "weekLabel" (p.sh. "15/09 - 21/09") dhe të njëjtat fusha si te "daily".
 - "summaries": përmbledhje të gatshme e të renditura:
   - "salesByProduct": produktet sipas sasisë e të ardhurave nga dërgesat (produkti më i shitur = i pari).
