@@ -12,6 +12,8 @@ import returnRoutes from './routes/return.routes';
 import dailyStockRoutes from './routes/dailyStock.routes';
 import shopRoutes from './routes/shop.routes';
 import aiRoutes from './routes/ai.routes';
+import { mcpAuth } from './mcp/auth';
+import { handleMcpRequest, methodNotAllowed } from './mcp/server';
 import { errorHandler } from './middleware/error.middleware';
 
 const app = express();
@@ -34,6 +36,14 @@ app.use('/api/kthimet', returnRoutes);
 app.use('/api/daily-stock', dailyStockRoutes);
 app.use('/api/shop', shopRoutes);
 app.use('/api/ai', aiRoutes);
+
+// Remote MCP server for ChatGPT (Phase 1: read-only). Auth via static bearer token.
+app.post('/mcp', mcpAuth, handleMcpRequest);
+app.get('/mcp', methodNotAllowed);
+app.delete('/mcp', methodNotAllowed);
+app.get('/mcp/health', (_, res) =>
+  res.json({ status: 'ok', service: 'furra-franc-mcp', version: '1.0.0' }),
+);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 

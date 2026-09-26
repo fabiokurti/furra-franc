@@ -245,6 +245,22 @@ model Return {
   @@map("returns")
 }
 
+model AiAuditLog {
+  id            String   @id @default(uuid())
+  timestamp     DateTime @default(now())
+  toolName      String
+  inputParams   Json?
+  resultStatus  String
+  errorCode     String?
+  durationMs    Int
+  requestId     String?
+  clientInfo    String?
+
+  @@index([timestamp])
+  @@index([toolName])
+  @@map("ai_audit_logs")
+}
+
 model ReturnItem {
   id        String  @id @default(uuid())
   quantity  Int
